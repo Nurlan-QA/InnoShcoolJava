@@ -31,8 +31,7 @@ public class AllTasks {
 // Проверка внутри метода должна происходить с помощью тернарного оператора.
 //**************************************
     public static boolean isPositive(int n) {
-// Исправление 2: Упрощение тернарного оператора
-        return n >= 0;
+        return n >= 0; // Упростил, без if, так как по умолчанию будет возвращаться тру или фолс
     }
 
     //**************************************
@@ -72,25 +71,25 @@ public class AllTasks {
         for (int i = start; i >= 1; i--) {
             result.append(i).append(" ");
         }
-        result.append("ПОЕХАЛИ!");
+        result.append("Поехали!");
         return result.toString();
     }
 
     //**************************************
 // УРОК №1. ЗАДАНИЕ №6.
-// Разработать метод с сигнатурой publiс static int sumToN(int n). Метод возвращает сумму всех целых чисел от 1 до n.
+// Разработать метод с сигнатурой public static int sumToN(int n). Метод возвращает сумму всех целых чисел от 1 до n.
 //**************************************
     public static int sumToN(int n) {
         int sum = 0;
         for (int i = 0; i <= n; i++) {
-            sum += i;
+            sum = sum + i;
         }
         return sum;
     }
 
     //**************************************
 // УРОК №1. ЗАДАНИЕ №7.
-// Разработать метод с сигнатурой publiс static boolean hasBug(String[] messages).
+// Разработать метод с сигнатурой public static boolean hasBug(String[] messages).
 // Метод принимает массив строк и возвращает true, если хотя бы одна строка в массиве равна Bug.
 // Сравнение можно выполнять без учёта регистра.
 //**************************************
@@ -104,7 +103,7 @@ public class AllTasks {
     }
     //**************************************
 // УРОК №1. ЗАДАНИЕ №8.
-// Разработать метод с сигнатурой publiс static getEvenInRange(int start, int end).
+// Разработать метод с сигнатурой public static getEvenInRange(int start, int end).
 // Метод принимает границы диапазона и возвращает строку, состоящую только из чётных чисел внутри этого промежутка (включая границы),
 // разделённых пробелом. Перед первым и после последнего числа пробел не ставится. Например: (2, 5) -> “2 4”
 //**************************************
@@ -123,7 +122,7 @@ public class AllTasks {
 
     //**************************************
 // УРОК №1. ЗАДАНИЕ №9.
-// Разработать метод с сигнатурой publiс static public int findMax(int[] arr).
+// Разработать метод с сигнатурой public static public int findMax(int[] arr).
 // Метод находит и возвращает самое большое число в переданном массиве.
 //**************************************
     public static int findMax(int[] arr) {
@@ -141,7 +140,7 @@ public class AllTasks {
 
     //**************************************
 // УРОК №1. ЗАДАНИЕ №10.
-// Разработать метод с сигнатурой publiс static String[] reverse(String[] arr).
+// Разработать метод с сигнатурой public static String[] reverse(String[] arr).
 // Метод возвращает новый массив, в котором элементы исходного массива расположены в обратном порядке.
 // Например, {“One”, “Two”, “Zero”} -> {“Zero”, “Two”, “One}.
 //**************************************
@@ -155,7 +154,7 @@ public class AllTasks {
 
     //**************************************
 // УРОК №1. ЗАДАНИЕ №11.
-// Разработать метод с сигнатурой publiс static calcAverage(List<Integer> list).
+// Разработать метод с сигнатурой public static calcAverage(List<Integer> list).
 // Метод вычисляет и возвращает среднее арифметическое всех чисел в списке.
 //**************************************
     public static Double calcAverage(List<Integer> list) {
@@ -171,7 +170,7 @@ public class AllTasks {
 
     //**************************************
 // УРОК №1. ЗАДАНИЕ №12.
-// Разработать метод с сигнатурой publiс static List<String> removeSpecificName(List<String> list, String nameToRemove).
+// Разработать метод с сигнатурой public static List<String> removeSpecificName(List<String> list, String nameToRemove).
 // Метод принимает список и имя, которое нужно исключить. Возвращает новый список, не содержащий указанного имени.
 //**************************************
     public static List<String> removeSpecificName(List<String> list, String nameToRemove) {
