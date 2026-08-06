@@ -30,7 +30,7 @@ public class RandomValuesTasksTest {
     private static Stream<Arguments> randomNumbersProvider() {
         Random random = new Random();
         return IntStream.range(0, 5) // Генерируем 10 случайных чисел от 0 до 100
-                .mapToObj(i -> random.nextInt(100)) // чтобы включить 100
+                .mapToObj(_ -> random.nextInt(100)) // чтобы включить 100
                 .map(Arguments::of);
     }
 
