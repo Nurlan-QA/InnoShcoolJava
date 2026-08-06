@@ -1,68 +1,405 @@
-import org.junit.jupiter.api.Test;
-import java.util.List;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+//import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+// ***************************************************************************************************************
+// Добавить тестовый класс или набор классов, содержащих запуск всех тестовых методов,
+// разработанных в ДЗ к теме «Базовая Java», и проверку, что результат работы равен эталонному.
+// Использование assert не требуется, достаточно проверить в условном операторе и вывести на экран строку TEST PASSED или TEST FAILED.
+// Данные для запуска тестов должны быть сгенерированы случайно или взяты из CSV, прикреплённого к проекту.
+// ДОБАВИЛ (НА ВСЯКИЙ СЛУЧАЙ) ВЫВОД ЗАПИСЕЙ ПЕРЕД И ПОСЛЕ КАЖДОГО МЕТОДА, ТАК БЫЛО СКАЗАНО ЛЕКТОРОМ, В ДЗ НЕ НАПИСАНО
+// ***************************************************************************************************************
 
 public class AllTasksTest {
 
-        @Test
-    public void runAllTests() {
-//    public static void main(String[] args) {
-        System.out.println("========== Run tasks =========");
 
-        // 1. Проверка четности
-        System.out.println("Task 1: isEven(4) = " + AllTasks.isEven(4));
-        System.out.println("Task 1: isEven(5) = " + AllTasks.isEven(5));
+    /** РАНДОМАЙЗЕР ЧИСЛОВЫХ ЗНАЧЕНИЙ **/
+    private static Stream<Arguments> randomNumbersProvider() {
+        Random random = new Random();
+        return IntStream.range(0, 5) // Генерируем 10 случайных чисел от 0 до 100
+                .mapToObj(i -> random.nextInt(101)) // чтобы включить 100
+                .map(Arguments::of);
+    }
 
+
+    @BeforeEach
+    void start() {System.out.println("========================\nTest method start\n");}
+    @AfterEach
+    void end() {System.out.println("\nTest method end\n========================");}
+
+
+    @RepeatedTest(3)
+    public void isEven(){
+        // 1. Проверка четности с рандомным числом и выводом результата теста
+        Random random = new Random();
+        int number = random.nextInt(1, 1000);
+        System.out.println("Случайное число '" + number + "' четное: " + AllTasks.isEven(number));
+        boolean result = AllTasks.isEven(number);
+        if (result) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+    //    ======================================================================================
+
+    @RepeatedTest(5)
+    public void checkAccess() {
         // 2. Проверка доступа
-        System.out.println("Task 2: checkAccess(20) = " + AllTasks.checkAccess(20));
-        System.out.println("Task 2: checkAccess(15) = " + AllTasks.checkAccess(15));
+        Random random = new Random();
+        int numb = random.nextInt(0, 99);
+        System.out.println("Доступ с возрастом '" + numb + "': " + AllTasks.checkAccess(numb));
+        String result = AllTasks.checkAccess(numb);
+        if ("Allowed".equals(result)) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
 
+    //    ======================================================================================
+
+    @Test
+    public void isPositive() {
         // 3. Проверка положительности
-        System.out.println("Task 3: isPositive(10) = " + AllTasks.isPositive(10));
-        System.out.println("Task 3: isPositive(-5) = " + AllTasks.isPositive(-5));
+        Random random = new Random();
+        int numb = random.nextInt(-100, 100);
+        System.out.println("Число '" + numb + "' положительное: " + AllTasks.isPositive(numb));
+        boolean result = AllTasks.isPositive(numb);
+        if (result) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
 
+    //    ======================================================================================
+
+    @Test
+    @Tag("Smoke")
+    public void getGrade() {
         // 4. Оценка
-        System.out.println("Task 4: getGrade(85) = " + AllTasks.getGrade(85));
-        System.out.println("Task 4: getGrade(15) = " + AllTasks.getGrade(15));
-        System.out.println("Task 4: getGrade(105) = " + AllTasks.getGrade(105));
+        Random random = new Random();
+        int numb = random.nextInt(0, 100);
+        System.out.println("Число '" + numb + "' входит в группу: " + AllTasks.getGrade(numb));
+        String result = AllTasks.getGrade(numb);
+        if (    "A".equals(result) ||
+                "B".equals(result) ||
+                "C".equals(result) ||
+                "D".equals(result) ||
+                "E".equals(result))
+        {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
 
+    //    ======================================================================================
+
+    @Test
+    public void blastOff() {
         // 5. Обратный отсчет
-        System.out.println("Task 5: blastOff(3) = " + AllTasks.blastOff(3));
+        Random random = new Random();
+        int numb = random.nextInt(0, 20);
 
+        System.out.println("Стартовое число '" + numb + "':\n" + AllTasks.blastOff(numb));
+
+        // Сохраняем в переменную полученный результат
+        String result = AllTasks.blastOff(numb);
+
+        // Формируем ожидаемую строку вручную для проверки
+        StringBuilder expectedBuilder = new StringBuilder();
+        for (int i = numb; i >= 1; i--) {
+            expectedBuilder.append(i).append(" ");
+        }
+        expectedBuilder.append("Поехали!");
+        String expected = expectedBuilder.toString();
+
+        // Сравниваем результаты
+        if (expected.equals(result)) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+    //    ======================================================================================
+
+    @ParameterizedTest
+    @MethodSource("randomNumbersProvider")
+//    @ValueSource( ints = {5, 8, 66, 156})
+    public void sumToN(int n) {
         // 6. Сумма до N
-        System.out.println("Task 6: sumToN(5) = " + AllTasks.sumToN(5));
 
+        System.out.println("Task 6: Сумма чисел в интервале от 1 до " + n + " = " + AllTasks.sumToN(n));
+
+        int result = AllTasks.sumToN(n);
+
+        int sum = 0;
+        for (int i = 0; i <= n; i++) {
+            sum = sum + i;
+        }
+
+        // Сравниваем результаты
+        if (sum == result) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+    //    ======================================================================================
+
+    @Test
+    public void hasBug() {
         // 7. Поиск бага
-        String[] logs = {"info", "warning", "bug", "error"};
-        System.out.println("Task 7: hasBug(logs) = " + AllTasks.hasBug(logs));
+        String[] logs = {"info", "warning", "bug", "error", "debug", "Bug", "ERROR", "INFO", "Warning",
+                "Error", "Critical", "critical", "CRITICAL", "Info"};
+        Random random = new Random();
 
+        // Генерируем случайную длину от 1 до длины исходного массива
+        // random.nextInt(n) дает числа от 0 до n-1, поэтому +1 для диапазона [1, length]
+        int subArrayLength = random.nextInt(logs.length) + 1;
+
+        // Создаем новый массив нужной длины
+        String[] resultArray = new String[subArrayLength];
+
+        // Заполняем его случайными элементами из исходного массива
+        for (int i = 0; i < subArrayLength; i++) {
+            int randomIndex = random.nextInt(logs.length);
+            resultArray[i] = logs[randomIndex];
+        }
+        System.out.println("Сгенерированный массив: " + Arrays.toString(resultArray));
+        System.out.println("В массиве есть слово 'bug': " + AllTasks.hasBug(resultArray));
+
+        boolean result = AllTasks.hasBug(resultArray);
+        if (result) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+
+    //    ======================================================================================
+
+    @Test
+    public void EvenInRange() {
         // 8. Четные в диапазоне
-        System.out.println("Task 8: getEvenInRange(2, 5) = " + AllTasks.getEvenInRange(2, 5));
+        Random random = new Random();
+        int a = random.nextInt(0, 20);
+        int b = random.nextInt(21, 40);
+        System.out.println("Четные числа в диапазоне от '" + a + "' до '" + b +"':\n " + AllTasks.getEvenInRange(a,b));
 
+        StringBuilder result = new StringBuilder();
+        for (int i = a; i <= b; i++) {
+            if (i % 2 == 0) {
+                if (!result.isEmpty()) {
+                    result.append(" ");
+                }
+                result.append(i);
+            }
+        }
+        String res = result.toString();
+        String getEvenInRange = AllTasks.getEvenInRange(a,b);
+
+        if (res.equals(getEvenInRange))
+        {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+
+    //    ======================================================================================
+
+    @Test
+    public void findMax() {
         // 9. Максимум в массиве
-        int[] numbers = {3, 7, 2, 9, 1};
-        System.out.println("Task 9: findMax(numbers) = " + AllTasks.findMax(numbers));
+        Random random = new Random();
+        // Генерируем случайную длину массива
+        int arrayLength = random.nextInt(30) + 1;
 
-        // 10. Разворот массива
-        String[] words = {"One", "Two", "Zero"};
+        // Создаем массив нужной длины
+        int[] resultArray = new int[arrayLength];
+
+        // Заполняем его случайными числами от 0 до 1000
+        for (int i = 0; i < arrayLength; i++) {
+            int randomValue = random.nextInt(1001); // от 0 до 1000
+            resultArray[i] = randomValue;
+        }
+
+        System.out.println("Сгенерированный массив: " + java.util.Arrays.toString(resultArray));
+        System.out.println("Максимальное число в массиве: " + AllTasks.findMax(resultArray));
+
+        // проверка результата
+        int max = resultArray[0];
+        for (int i = 1; i < resultArray.length; i++) {
+            if (resultArray[i] > max) {
+                max = resultArray[i];
+            }
+        }
+        int result = AllTasks.findMax(resultArray);
+        if (result == max) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+    //    ======================================================================================
+
+    @Test
+    public void reverse() {Random random = new Random();
+
+        // Генерируем случайную длину массива (например, от 3 до 10 элементов)
+        int length = random.nextInt(8) + 3;
+
+        // Создаем массив случайных строк
+        String[] words = new String[length];
+        for (int i = 0; i < length; i++) {
+            words[i] = "Word" + i; // Или можно использовать другие случайные слова
+        }
+
+        // Вызываем метод разворота
         String[] reversed = AllTasks.reverse(words);
-        System.out.print("Task 10: reverse(words) = [");
+
+        System.out.print("Изначальный список слов: [");
+        for (int i = 0; i < words.length; i++) {
+            System.out.print(words[i]);
+            if (i < words.length - 1) System.out.print(", ");
+        }
+        System.out.println("]");
+
+        // Выводим результаты для наглядности
+        System.out.print("Обратный список слов: [");
         for (int i = 0; i < reversed.length; i++) {
             System.out.print(reversed[i]);
             if (i < reversed.length - 1) System.out.print(", ");
         }
         System.out.println("]");
 
+
+        boolean testPassed = true;
+
+        // 1. Проверяем длину массивов
+        if (words.length != reversed.length) {
+            testPassed = false;
+        } else {
+            // 2. Проверяем, что элементы стоят в обратном порядке
+            for (int i = 0; i < words.length; i++) {
+                // Элемент i в исходном должен быть равен элементу (length - 1 - i) в развернутом
+                if (!words[i].equals(reversed[words.length - 1 - i])) {
+                    testPassed = false;
+                    break;
+                }
+            }
+        }
+
+        // Вывод результата теста
+        if (testPassed) {
+            System.out.println("TEST PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
+    }
+
+
+    //    ======================================================================================
+
+    @Test
+    public void calcAverage() {
         // 11. Среднее арифметическое
-        List<Integer> list = List.of(10, 20, 30);
-        System.out.println("Task 11: Average = " + AllTasks.calcAverage(list));
+        Random random = new Random();
 
-        // 12. Удаление слова из списка
-        List<String> spisok = List.of("Jhon", "Ram", "Anika", "Alexandr");
-        String nameToRemove = spisok.get(2);
-        System.out.println("Task 12: removeSpecificName(Anika) = " + AllTasks.removeSpecificName(spisok, nameToRemove));
+        // 1. Генерируем случайную длину списка (от 1 до 20)
+        int listSize = random.nextInt(20) + 1;
 
-        System.out.println("============ Done! ===========");
+        // 2. Создаем список и заполняем его случайными числами (от 0 до 100)
+        List<Integer> list = new ArrayList<>(); // заменил его на new ArrayList<>(), чтобы мы могли динамически добавлять туда случайные числа
+        double summa = 0;
+
+        // 3. Заполняем его случайными числами (например, от 0 до 100)
+        for (int i = 0; i < listSize; i++) {
+            int randomNum = random.nextInt(101); // от 0 до 100 включительно
+            list.add(randomNum);
+            summa = summa + randomNum;
+        }
+
+        // Вычисляем ожидаемое среднее вручную для проверки
+        double expectedAverage = summa / listSize;
+
+        // Вызываем тестируемый метод
+        Double actualAverage = AllTasks.calcAverage(list);
+
+        // 4. Выводим сгенерированный список для наглядности (опционально)
+        System.out.println("Сгенерированный список (" + listSize + " элементов):\n" + list);
+        System.out.println("Ожидаемое среднее: " + expectedAverage);
+        System.out.println("Полученное среднее: " + actualAverage);
+
+        if (expectedAverage == actualAverage)
+        {
+            System.out.println("ТЕСТ PASSED");
+        } else {
+            System.out.println("TEST FAILED");
+        }
 
     }
+
+    //    ======================================================================================
+
+    @Test
+    public void removeWord() {
+        // 12. Удаление слова из списка
+        List<String> spisok = List.of("Jhon", "Nikita", "Anika", "Alexandr", "Petr", "Nurlan", "Egor", "Misha");
+        Random random = new Random();
+
+        // Добавляем рандомное исключение имени из списка
+        int a = random.nextInt(8) + 1;
+
+        String nameToRemove = spisok.get(a);
+        System.out.println("Исключенное имя из списка: " + nameToRemove);
+        System.out.println("Итоговый список имен: " + AllTasks.removeSpecificName(spisok, nameToRemove));
+
+        List<String> result = new ArrayList<>();
+
+        for (String item : spisok) {
+            if (!item.equals(nameToRemove)) {
+                result.add(item);
+            }
+        }
+
+        // Попробовал через ассерт реализацию
+        try {
+            // Проверяем, что имя НЕ содержится в результате
+            Assertions.assertFalse(result.contains(nameToRemove), "Имя должно быть удалено из списка");
+
+            // Если код дошел сюда, значит проверка прошла успешно
+            System.out.println("TEST PASSED");
+
+        } catch (AssertionError e) {
+            // Если проверка не прошла, ловим ошибку и выводим сообщение о провале
+            System.out.println("TEST FAILED: " + e.getMessage());
+
+            // Важно: перевыбрасываем исключение, чтобы JUnit знал, что тест провален
+            throw e;
+        }
+    }
 }
+

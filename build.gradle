@@ -10,11 +10,59 @@ repositories {
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+}
+
+tasks.withType(Test) {
+    // Эти настройки применятся ко ВСЕМ задачам тестирования
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
 }
 
 test {
     useJUnitPlatform()
+    outputs.upToDateWhen { false }
+}
+
+// Задание №1. Первая таска запускает все тесты в проекте
+tasks.register("runAllTests", Test) {
+    group = 'my_tests'
+    description = 'RUN ALL TESTS'
+    outputs.upToDateWhen { false }
+
+    useJUnitPlatform {
+//    include '**/AllTasksTest.class' // Все тесты  проекте в конкретном созданном классе
+    }
+}
+
+// УРОК №2. Задание № 1.2. Вторая таска после прогона тестов пишет в консоль "Test run is over"
+tasks.named("runAllTests"){
+    doLast {
+    println("Test run is over")
+    }
+}
+
+// УРОК №2. ЗАДАНИЕ № 1.2. Запуск класса с тремя методами с рандомными значениями
+tasks.register("runRandomValuesTasks", Test) {
+    group = 'my_tests'
+    outputs.upToDateWhen { false }
+    useJUnitPlatform {
+        include '**/RandomValuesTasksTest.class'
+    }
+    doLast {
+        println("Test run is over!")
+    }
+}
+
+tasks.register("smokeTests", Test) {
+    group = 'my_tests'
+    description = 'Run tests in class AllTasksTest with tags Smoke'
+    outputs.upToDateWhen { false }
+    useJUnitPlatform {
+        include '**/AllTasksTest.class'
+        includeTags "Smoke"
+    }
 }
