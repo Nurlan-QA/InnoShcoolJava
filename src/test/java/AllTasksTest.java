@@ -1,11 +1,12 @@
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
+//import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+//import org.junit.jupiter.params.provider.MethodSource;
 //import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 import java.util.Arrays;
@@ -41,77 +42,81 @@ public class AllTasksTest {
     void end() {System.out.println("\nTest method end\n========================");}
 
 
-    @RepeatedTest(3)
+    @RepeatedTest(10)
+    @Tag("ShortTest")
     public void isEven(){
-        // 1. Проверка четности с рандомным числом и выводом результата теста
-        Random random = new Random();
-        int number = random.nextInt(1, 1000);
+        // 1. Проверка четности с рандомным числом и выводом результата теста, если число нечетное, падает ошибка
+//        Random random = new Random();
+//        int number = random.nextInt(1, 1000);
+        int number = 1564;
         System.out.println("Случайное число '" + number + "' четное: " + AllTasks.isEven(number));
+
         boolean result = AllTasks.isEven(number);
-        if (result) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertTrue(result, "Число " + number + " нечетное!");
     }
 
     //    ======================================================================================
 
-    @RepeatedTest(5)
+
+    @RepeatedTest(10)
     public void checkAccess() {
         // 2. Проверка доступа
         Random random = new Random();
         int numb = random.nextInt(0, 99);
         System.out.println("Доступ с возрастом '" + numb + "': " + AllTasks.checkAccess(numb));
         String result = AllTasks.checkAccess(numb);
-        if ("Allowed".equals(result)) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        assertThat(result)
+                .as("Доступ разрешен: ", result)
+                .isIn("Allowed");
     }
 
     //    ======================================================================================
 
-    @Test
+    @RepeatedTest(10)
     public void isPositive() {
         // 3. Проверка положительности
         Random random = new Random();
-        int numb = random.nextInt(-100, 100);
+        int numb = random.nextInt(0, 100);
         System.out.println("Число '" + numb + "' положительное: " + AllTasks.isPositive(numb));
         boolean result = AllTasks.isPositive(numb);
-        if (result) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertTrue(result, "Число должно быть положительным!");
     }
 
     //    ======================================================================================
 
-    @Test
-    @Tag("Smoke")
+    @RepeatedTest(10)
+    @Tag("ShortTest")
     public void getGrade() {
         // 4. Оценка
         Random random = new Random();
         int numb = random.nextInt(0, 100);
-        System.out.println("Число '" + numb + "' входит в группу: " + AllTasks.getGrade(numb));
         String result = AllTasks.getGrade(numb);
-        if (    "A".equals(result) ||
-                "B".equals(result) ||
-                "C".equals(result) ||
-                "D".equals(result) ||
-                "E".equals(result))
-        {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        System.out.println("Число '" + numb + "' входит в группу: " + result);
+
+        assertThat(result)
+                .as("Оценка '%s' должна быть одной из: A, B, C, D, E", result)
+                .isIn("A", "B", "C", "D", "E");
+
+        System.out.println("TEST PASSED");
+
+//        Условный оператор вместо ассертов, для ДЗ №2
+
+//        if (    "A".equals(result) ||
+//                "B".equals(result) ||
+//                "C".equals(result) ||
+//                "D".equals(result) ||
+//                "E".equals(result))
+//        {
+//            System.out.println("TEST PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
     }
 
     //    ======================================================================================
 
-    @Test
+    @RepeatedTest(10)
+    @Tag("ShortTest")
     public void blastOff() {
         // 5. Обратный отсчет
         Random random = new Random();
@@ -130,22 +135,28 @@ public class AllTasksTest {
         expectedBuilder.append("Поехали!");
         String expected = expectedBuilder.toString();
 
-        // Сравниваем результаты
-        if (expected.equals(result)) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        assertThat(result)
+                .as("Обратный отсчет должен начинаться с числа" + numb +" и заканчиваться фразой 'Поехали!'", expected)
+                .startsWith(expected);
+
+//        // Сравниваем результаты
+//        if (expected.equals(result)) {
+//            System.out.println("TEST PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
     }
 
     //    ======================================================================================
 
-    @ParameterizedTest
-    @MethodSource("randomNumbersProvider")
+    @RepeatedTest(10)
+//    @ParameterizedTest
+//    @MethodSource("randomNumbersProvider")
 //    @ValueSource( ints = {5, 8, 66, 156})
-    public void sumToN(int n) {
+//    если нужночерез параметр, добавить int n, и передать либо хардкод, либо рандомайзер
+    public void sumToN() {
         // 6. Сумма до N
-
+        int n = 20;
         System.out.println("Task 6: Сумма чисел в интервале от 1 до " + n + " = " + AllTasks.sumToN(n));
 
         int result = AllTasks.sumToN(n);
@@ -155,17 +166,20 @@ public class AllTasksTest {
             sum = sum + i;
         }
 
-        // Сравниваем результаты
-        if (sum == result) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertEquals(sum, result);
+        System.out.println("TEST PASSED");
+
+//        // Сравниваем результаты
+//        if (sum == result) {
+//            System.out.println("TEST PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
     }
 
     //    ======================================================================================
 
-    @Test
+    @RepeatedTest(10)
     public void hasBug() {
         // 7. Поиск бага
         String[] logs = {"info", "warning", "bug", "error", "debug", "Bug", "ERROR", "INFO", "Warning",
@@ -188,17 +202,21 @@ public class AllTasksTest {
         System.out.println("В массиве есть слово 'bug': " + AllTasks.hasBug(resultArray));
 
         boolean result = AllTasks.hasBug(resultArray);
-        if (result) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertTrue(result, "В списке должно быть слово Bug");
+        System.out.println("TEST PASSED");
+
+    //        if (result) {
+    //            System.out.println("TEST PASSED");
+    //        } else {
+    //            System.out.println("TEST FAILED");
+    //        }
     }
 
 
     //    ======================================================================================
 
-    @Test
+
+    @RepeatedTest(10)
     public void EvenInRange() {
         // 8. Четные в диапазоне
         Random random = new Random();
@@ -218,18 +236,21 @@ public class AllTasksTest {
         String res = result.toString();
         String getEvenInRange = AllTasks.getEvenInRange(a,b);
 
-        if (res.equals(getEvenInRange))
-        {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertEquals(getEvenInRange, res);
+        System.out.println("TEST PASSED");
+
+//        if (res.equals(getEvenInRange))
+//        {
+//            System.out.println("TEST PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
     }
 
 
     //    ======================================================================================
-
-    @Test
+    @Tag("ShortTest")
+    @RepeatedTest(10)
     public void findMax() {
         // 9. Максимум в массиве
         Random random = new Random();
@@ -255,17 +276,21 @@ public class AllTasksTest {
                 max = resultArray[i];
             }
         }
-        int result = AllTasks.findMax(resultArray);
-        if (result == max) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+
+        Assertions.assertEquals(AllTasks.findMax(resultArray), max);
+        System.out.println("TEST PASSED");
+
+//        int result = AllTasks.findMax(resultArray);
+//        if (result == max) {
+//            System.out.println("TEST PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
     }
 
     //    ======================================================================================
 
-    @Test
+    @RepeatedTest(10)
     public void reverse() {Random random = new Random();
 
         // Генерируем случайную длину массива (например, от 3 до 10 элементов)
@@ -312,20 +337,25 @@ public class AllTasksTest {
             }
         }
 
-        // Вывод результата теста
-        if (testPassed) {
-            System.out.println("TEST PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertTrue(testPassed, "Реверс массива некорректен!");
+        System.out.println("TEST PASSED");
+
+//        // Вывод результата теста
+//        if (testPassed) {
+//            System.out.println("TEST PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
     }
 
 
     //    ======================================================================================
 
-    @Test
+    @RepeatedTest(10)
     public void calcAverage() {
-        // 11. Среднее арифметическое
+
+        // Задача 11. Среднее арифметическое
+
         Random random = new Random();
 
         // 1. Генерируем случайную длину списка (от 1 до 20)
@@ -353,18 +383,21 @@ public class AllTasksTest {
         System.out.println("Ожидаемое среднее: " + expectedAverage);
         System.out.println("Полученное среднее: " + actualAverage);
 
-        if (expectedAverage == actualAverage)
-        {
-            System.out.println("ТЕСТ PASSED");
-        } else {
-            System.out.println("TEST FAILED");
-        }
+        Assertions.assertEquals(actualAverage, expectedAverage);
+        System.out.println("TEST PASSED");
+
+//        if (expectedAverage == actualAverage)
+//        {
+//            System.out.println("ТЕСТ PASSED");
+//        } else {
+//            System.out.println("TEST FAILED");
+//        }
 
     }
 
     //    ======================================================================================
 
-    @Test
+    @RepeatedTest(1)
     public void removeWord() {
         // 12. Удаление слова из списка
         List<String> spisok = List.of("Jhon", "Nikita", "Anika", "Alexandr", "Petr", "Nurlan", "Egor", "Misha");
@@ -385,12 +418,10 @@ public class AllTasksTest {
             }
         }
 
-        // Попробовал через ассерт реализацию
+        // Assert с выбросом исключения
         try {
             // Проверяем, что имя НЕ содержится в результате
             Assertions.assertFalse(result.contains(nameToRemove), "Имя должно быть удалено из списка");
-
-            // Если код дошел сюда, значит проверка прошла успешно
             System.out.println("TEST PASSED");
 
         } catch (AssertionError e) {

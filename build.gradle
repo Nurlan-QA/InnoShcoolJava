@@ -14,6 +14,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    // Source: https://mvnrepository.com/artifact/org.assertj/assertj-core
+    testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 
 tasks.withType(Test) {
@@ -57,12 +59,12 @@ tasks.register("runRandomValuesTasks", Test) {
     }
 }
 
-tasks.register("smokeTests", Test) {
+tasks.register("ShortTest", Test) {
     group = 'my_tests'
-    description = 'Run tests in class AllTasksTest with tags Smoke'
+    description = 'Run tests in class AllTasksTest with tags ShortTest'
     outputs.upToDateWhen { false }
     useJUnitPlatform {
         include '**/AllTasksTest.class'
-        includeTags "Smoke"
+        includeTags 'ShortTest'
     }
 }

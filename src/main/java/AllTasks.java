@@ -8,6 +8,7 @@ public class AllTasks {
 //Разработать метод с сигнатурой publiс static boolean isEven(int n). Метод возвращает true, если число чётное, и false — если нечётное.
 //**************************************
     public static boolean isEven(int n) {
+
         return n % 2 == 0;
     }
 
@@ -142,7 +143,7 @@ public class AllTasks {
 // УРОК №1. ЗАДАНИЕ №10.
 // Разработать метод с сигнатурой public static String[] reverse(String[] arr).
 // Метод возвращает новый массив, в котором элементы исходного массива расположены в обратном порядке.
-// Например, {“One”, “Two”, “Zero”} -> {“Zero”, “Two”, “One}.
+// Например, {“One”, “Two”, “Zero”} -> {“Zero”, “Two”, "One"}.
 //**************************************
     public static String[] reverse(String[] arr) {
         String[] reversedArr = new String[arr.length];
@@ -184,4 +185,20 @@ public class AllTasks {
         return result;
 
     }
+
+
+//    УРОК №3. СЛОМАННЫЙ МЕТОД ДЛЯ ВОЗВРАТА НЕПРАВИЛЬНОГО ЗНАЧЕНИЯ, ЧТОБЫ ТЕСТ ПАДАЛ
+
+public static List<Integer> reduce(List<Integer> list, int size) {
+    List<Integer> result = new ArrayList<>();
+    for (int i = 0; i <= size; i++) {     // намеренно установили <=, а не строго больше, чтобы тест ломался
+
+        if (i < list.size()) {
+            result.add(list.get(i));
+        } else {
+            break;
+        }
+    }
+    return result;
+}
 }
