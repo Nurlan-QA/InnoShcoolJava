@@ -19,6 +19,10 @@ dependencies {
     implementation 'io.rest-assured:rest-assured:5.5.6'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.17.0'
+    // Source: https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+    implementation("org.seleniumhq.selenium:selenium-java:4.43.0")
+    // Source: https://mvnrepository.com/artifact/com.codeborne/selenide
+    testImplementation 'com.codeborne:selenide:7.17.0'
 }
 
 tasks.withType(Test) {
@@ -30,25 +34,38 @@ tasks.withType(Test) {
 test {
     useJUnitPlatform()
     outputs.upToDateWhen { false }
+
+    // Явно указываем, где искать тесты
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
 }
+
+
 
 // Задание №1. Первая таска запускает все тесты в проекте
 tasks.register("runAllTests", Test) {
     group = 'my_tests'
     description = 'RUN ALL TESTS'
     outputs.upToDateWhen { false }
-
     useJUnitPlatform {
-//    include '**/AllTasksTest.class' // Все тесты  проекте в конкретном созданном классе
+    include '**/AllTasksTest.class'
     }
 }
 
 // УРОК №2. Задание № 1.2. Вторая таска после прогона тестов пишет в консоль "Test run is over"
-tasks.named("runAllTests"){
+// Ключевое изменение: добавил зависимость dependsOn('runAllTests')
+tasks.register("finalReport") {
+    group = 'my_tests'
+    description = 'Выводит отчет после прогона тестов'
+    dependsOn('runAllTests')
+
     doLast {
-    println("Test run is over")
+        println("Test run is over")
     }
 }
+
+
+
 
 // УРОК №2. ЗАДАНИЕ № 1.2. Запуск класса с тремя методами с рандомными значениями
 tasks.register("runRandomValuesTasks", Test) {
@@ -67,7 +84,6 @@ tasks.register("ShortTest", Test) {
     description = 'Run tests in class AllTasksTest with tags ShortTest'
     outputs.upToDateWhen { false }
     useJUnitPlatform {
-        include '**/AllTasksTest.class'
         includeTags 'ShortTest'
     }
 }
@@ -78,5 +94,31 @@ tasks.register("apiTest", Test) {
     outputs.upToDateWhen { false }
     useJUnitPlatform {
         include '**/api/api_tests/GoodTest.class'
+    }
+}
+
+// ЗАПУСК КЛАССОВ НА СЕЛЕНИУМЕ
+tasks.register("runSeleniumTests", Test) {
+    group = 'my_tests'
+    description = 'Run Selenium tests'
+    outputs.upToDateWhen { false }
+    useJUnitPlatform {
+        include '**/ui/SeleniumTest/**/*.class'
+    }
+    doLast {
+        println("!!! SELENIUM TESTS RUN IS OVER !!!")
+    }
+}
+
+// ЗАПУСК КЛАССОВ НА СЕЛЕНИДЕ
+tasks.register("runSelenideTests", Test) {
+    group = 'my_tests'
+    description = 'RUN SELENIDE TESTS'
+    outputs.upToDateWhen { false }
+    useJUnitPlatform {
+        include '**/ui/SelenideTest/**/*.class'
+    }
+    doLast {
+        println("!!! SELENIDE TESTS RUN IS OVER !!!")
     }
 }

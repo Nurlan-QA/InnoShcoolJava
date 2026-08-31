@@ -91,7 +91,8 @@ public class GoodTest {
     // ==========================================
     @Test
     void testAddGoodsRestAssured() {
-        String uniqueName = "Hamcrest_Good_" + System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        String uniqueName = "Good_RA" + (now % 1000000);
         Good newGood = new Good(uniqueName, 99.99);
 
         // 1. Создаем товар
@@ -117,7 +118,8 @@ public class GoodTest {
     // ==========================================
     @Test
     void testAddGoodsWithAssertJ() {
-        String uniqueName = "AssertJ_Good_" + System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        String uniqueName = "Good_AJ" + (now % 1000000);
         Good newGood = new Good(uniqueName, 88.88);
 
         // 1. Создаем товар
@@ -154,7 +156,8 @@ public class GoodTest {
 
     @Test
     void testDeleteGoods() {
-        String uniqueName = "Delete_Good_" + System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        String uniqueName = "Good_delete" + (now % 1000000);
         Good newGood = new Good(uniqueName, 77.77);
 
         // 1. Создаем товар
@@ -190,7 +193,8 @@ public class GoodTest {
 
     @Test
     void testUpdateGoods() {
-        String uniqueName = "Update_Good_" + System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        String uniqueName = "Good_update" + (now % 1000000);
         Good newGood = new Good(uniqueName, 55.55);
 
         // 1. Создаем товар
