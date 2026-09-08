@@ -1,4 +1,8 @@
+
+# Артефакты сборки
 .gradle
+
+# Локальный кэш Gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -6,7 +10,7 @@ build/
 .kotlin
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 .idea/misc.xml
 .idea/modules.xml
 .idea/jarRepositories.xml
@@ -15,6 +19,7 @@ build/
 *.iws
 *.iml
 *.ipr
+*.class
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
