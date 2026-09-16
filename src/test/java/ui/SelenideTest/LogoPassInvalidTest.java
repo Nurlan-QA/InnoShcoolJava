@@ -14,7 +14,7 @@ public class LogoPassInvalidTest extends BaseTestSelenide {
     @Test
     void invalidLoginTest() {
         // ************* ВХОД В АДМИНКУ С НЕВЕРНЫМИ ДАННЫМИ *************
-        loginToAdmin("invalidlogin", "invalidpassword");
+        loginToAdminInvalid("invalidlogin", "invalidpassword");
 
         // Проверка результата: должно появиться сообщение об ошибке
         $x("//*[text()='Неверные учетные данные пользователя']").shouldBe(visible);

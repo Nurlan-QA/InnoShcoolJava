@@ -3,6 +3,7 @@ package ui.SelenideTest;
 import com.codeborne.selenide.DragAndDropOptions;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
+import ui.SelenideTest.config.ConfigProvider;
 
 import java.time.Duration;
 
@@ -14,9 +15,10 @@ import static com.codeborne.selenide.Selenide.*;
 import static com.codeborne.selenide.Selenide.$;
 
 public class CartRemovalTest extends BaseTestSelenide {
-    // Генерируем уникальное имя товара с временной меткой
-    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
-    private final String productName = "Notebook_" + uniqueSuffix;
+
+    long uniqueSuffix = System.nanoTime() % 1_000_000;
+    String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    String productPrice = ConfigProvider.getProductPrice();
 
     // Задаем элементы для DnD
     SelenideElement testProductCart = $(byAttribute("data-name", productName));
@@ -26,11 +28,11 @@ public class CartRemovalTest extends BaseTestSelenide {
     void cartRemoval() {
 
         // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin("admin", "secret123");
+        loginToAdmin();
 
         // ************* ДОБАВЛЕНИЕ ТЕСТОВОГО ТОВАРА В АДМИНКЕ *************
         $("#n-name").shouldBe(visible).setValue(productName);
-        $("#n-price").shouldBe(visible).setValue("123");
+        $("#n-price").shouldBe(visible).setValue(productPrice);
         $("#add-btn").click();
 
         // *********** ВОЗВРАЩАЕМСЯ НА САЙТ *************
@@ -87,9 +89,10 @@ public class CartRemovalTest extends BaseTestSelenide {
 
         System.out.println("Счетчик корзины обновлен: 0 товаров.");
 
+        // *********** ОТКРЫВАЕМ АДМИНКУ ***********
+        $("[href='/admin']").click();
 
         // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        $("[href='/admin']").click();
         deleteProduct(productName);
     }
 

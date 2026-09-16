@@ -2,6 +2,7 @@ package ui.SelenideTest;
 
 import api.api_config.ReqSpec;
 import api.api_methods.Good;
+import api.api_methods.GoodsApi;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -9,7 +10,10 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import api.api_methods.GoodsApi;
+
+import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.config.ConfigPrinter;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,38 +25,45 @@ import static com.codeborne.selenide.Selenide.*;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 // 3.1. Добавить три единицы товара в корзину и оплатить их (общая стоимость не должна превышать 300 рублей).
-// Проверить уведомление об обработке заказа.
-// 3.5. Хотя бы в одном кейсе должны быть обращение к API для генерации тестовых данных.
-// 3.6. Хотя бы в одном кейсе в блоке @AfterEach тестовые данные должны удаляться.
+// 3.5. Хотя бы в одном кейсе обращение к API для генерации тестовых данных.
+// 3.6. Хотя бы в одном кейсе в блоке @AfterEach тестовые данные удаляются.
 
 public class CartFlowOrderTest {
-    private final GoodsApi goodsApi = new GoodsApi();
 
+    private final GoodsApi goodsApi = new GoodsApi();
     int count = 3;
+
+
+    @BeforeEach
+    void setup() {
+        // Вывод конфигурации в консоль перед тестом
+        ConfigPrinter.printConfig();
+
+        // Настройка Selenide из конфига
+        Configuration.browser = "chrome";
+        Configuration.browserSize = "1920x1080";
+        Configuration.timeout = ConfigProvider.getTimeout();
+        Configuration.baseUrl = ConfigProvider.getBaseUrl();
+
+    }
 
     @AfterEach
     void quitTests() {
-
-//    УДАЛЕНИЕ ТЕСТОВЫХ ДАННЫХ В AfterEach
-
+        // УДАЛЕНИЕ ТЕСТОВЫХ ДАННЫХ
         for (int i = 1; i <= count; i++) {
-            // Формируем имя товара
-            String productName = "Смартфон_" + i;
+            String productName = ConfigProvider.getProductName() + "_" + i;
             String selector = "input[value*='" + productName + "']";
             $$(selector).shouldHave(sizeGreaterThan(0));
 
             SelenideElement inputField = $$(selector).first();
             SelenideElement row = inputField.closest("tr");
 
-            // Находим кнопку удаления ВНУТРИ этой строки и кликаем
             row.$("button[data-action='delete']")
-                    .shouldBe(enabled) // Ждем, пока кнопка станет активной
+                    .shouldBe(enabled)
                     .click();
             switchTo().alert().accept();
 
-            // Проверяем, что товар удален
             $(selector).shouldNot(exist);
             $$(selector).shouldHave(size(0));
             System.out.println("Тестовые данные успешно удалены!");
@@ -62,18 +73,11 @@ public class CartFlowOrderTest {
 
     @Test
     void addThreeGoodsWithApi() {
-
-        // СОЗДАНИЕ ТЕСТОВЫХ ДАННЫХ В BeforeEach
-
         List<Good> createdGoods = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
-
-            long now = System.currentTimeMillis();
-            String uniqueName = "Смартфон_" + i;
-
+            String uniqueName = ConfigProvider.getProductName() + "_" + i;
             Good newGood = new Good(uniqueName, 80.00 + i);
 
-            // 1. Создаем товар
             goodsApi.addGoods(newGood)
                     .then()
                     .statusCode(200);
@@ -93,29 +97,24 @@ public class CartFlowOrderTest {
         List<Good> goodsList = response.jsonPath().getList("goods", Good.class);
         assertThat(goodsList).hasSizeGreaterThanOrEqualTo(count);
 
-        Configuration.browser = "chrome";
-        Configuration.browserSize = "1920x1080";
-//        Configuration.timeout = 10000; // 10 секунд
-        Configuration.baseUrl = "http://localhost:8080";
+
         open("/");
 
-        // Добавляем эти три товара в корзину через UI
+        // Добавляем товары в корзину через UI
         for (int i = 1; i <= count; i++) {
-            $("button[data-name='Смартфон_" + i + "']")
+            $("button[data-name='" + ConfigProvider.getProductName() + "_" + i + "']")
                     .shouldBe(visible)
                     .click();
         }
 
-
         // Проверяем и оформляем заказ
-
         $("#open-cart-btn")
                 .shouldBe(visible)
                 .click();
 
         $$(".cart-item")
                 .shouldHave(size(count))
-                .filterBy(text("Смартфон_"))
+                .filterBy(text(ConfigProvider.getProductName() + "_"))
                 .shouldBe();
 
         int totalPrice = Integer.parseInt($("#total-price").getText());
@@ -123,9 +122,9 @@ public class CartFlowOrderTest {
         if (totalPrice >= 300) {
             throw new AssertionError("Сумма корзины (" + totalPrice + ") больше 300!");
         }
-//        Нажимаем на кнопку 'Оформить заказ'
+
         $("#makeOrder").shouldBe(visible, Duration.ofSeconds(5)).click();
-//        Проверяем наличие тостера об успешном оформлении
+
         $$(".toast")
                 .filterBy(text("Заказ принят"))
                 .shouldHave(sizeGreaterThan(0))
@@ -133,13 +132,10 @@ public class CartFlowOrderTest {
                 .shouldBe(visible);
         System.out.println("Есть уведомление: Заказ принят в обработку!");
 
-        // *********** ПЕРЕХОД В АДМИНКУ ДЛЯ УДАЛЕНИЯ ТЕСТОВЫХ ДАННЫХ *************
+        // *********** ПЕРЕХОД В АДМИНКУ ДЛЯ УДАЛЕНИЯ ТЕСТОВЫХ ДАННЫХ ***********
         $("[href='/admin']").click();
-        $("#username").setValue("admin");
-        $("#password").setValue("secret123");
+        $("#username").setValue(ConfigProvider.getAdminLogin());
+        $("#password").setValue(ConfigProvider.getAdminPassword());
         $(".primary").click();
-
     }
 }
-
-

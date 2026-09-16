@@ -2,6 +2,7 @@ package ui.SelenideTest;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.Test;
+import ui.SelenideTest.config.ConfigProvider;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selectors.*;
@@ -13,32 +14,33 @@ public class GoodsAddAdminTest extends BaseTestSelenide {
 
     @Test
     void goodsAdd() {
+
+        long uniqueSuffix = System.nanoTime() % 1_000_000;
+        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+        String productPrice = ConfigProvider.getProductPrice();
+
         // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin("admin", "secret123");
+        loginToAdmin();
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРА В АДМИНКЕ *************
-
+        // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ АДМИНКЕ *************
         $("#n-name").shouldBe(visible).click();
-
-        $("#n-name").setValue("Кефир");
-
-        // Вводим цену
-        $("#n-price").setValue("60");
-
-        // Нажимаем кнопку "Создать"
+        $("#n-name").shouldBe(visible).setValue(productName);
+        $("#n-price").shouldBe(visible).setValue(productPrice);
         $("#add-btn").click();
 
         // ************* ИДЕМ НА ВИТРИНУ И ПРОВЕРЯЕМ ТОВАР *************
         $(byText("Вернуться на сайт")).click();
 
-        // Проверяем, что товар отображается на витрине
-        $("[data-name='Кефир']").shouldBe(visible);
-        $("[data-name='Кефир']").shouldHave(text("Кефир"));
-        System.out.println("Созданный товар есть на витрине сайта!");
+        // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
+        $("[data-name='" + productName + "']").shouldBe(visible);
+        $("[data-name='" + productName + "']").shouldHave(text(productName));
+        System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
+
+        // *********** ОТКРЫВАЕМ АДМИНКУ ***********
+        $("[href='/admin']").click();
 
         // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        $("[href='/admin']").click();
-        deleteProduct("Кефир");
+        deleteProduct(productName);
 
     }
 }

@@ -2,6 +2,8 @@ package ui.SelenideTest;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.Test;
+import ui.SelenideTest.config.ConfigProvider;
+
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.*;
 import static com.codeborne.selenide.Condition.*;
@@ -14,21 +16,32 @@ public class CartCheckoutAlertTest extends BaseTestSelenide {
     @Test
     void checkoutWithExpensiveItem() {
 
+        long uniqueSuffix = System.nanoTime() % 1_000_000;
+        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+        String productBigPrice = ConfigProvider.getProductBigPrice();
+
         // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin("admin", "secret123");
+        loginToAdmin();
 
         // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ 300 РУБ В АДМИНКЕ *************
-        $("#n-name").shouldBe(visible).setValue("Телевизор");
-        $("#n-price").shouldBe(visible).setValue("350");
+        $("#n-name").shouldBe(visible).setValue(productName);
+        $("#n-price").shouldBe(visible).setValue(productBigPrice);
         $("#add-btn").click();
 
         // ************* ВОЗВРАЩАЕМСЯ НА САЙТ И ДОБАВЛЯЕМ ТОВАР В КОРЗИНУ *************
         $(byText("Вернуться на сайт")).click();
-        $(byAttribute("data-name", "Телевизор")).shouldBe(visible);
 
-        $(byAttribute("data-name", "Телевизор"))
+        // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
+        $("[data-name='" + productName + "']").shouldBe(visible);
+        $("[data-name='" + productName + "']").shouldHave(text(productName));
+        System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
+
+        $("[data-name='" + productName + "']")
                 .find("button[data-action='add-to-cart']")
                 .click();
+
+
+
 
         // ************* ОТКРЫВАЕМ КОРЗИНУ И ПЫТАЕМСЯ ОФОРМИТЬ ТОВАР *************
         $("#open-cart-btn").shouldBe(visible).click();
@@ -47,6 +60,6 @@ public class CartCheckoutAlertTest extends BaseTestSelenide {
         $("[href='/admin']").click();
 
         // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        deleteProduct("Телевизор");
+        deleteProduct(productName);
     }
 }

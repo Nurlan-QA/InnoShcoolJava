@@ -3,9 +3,9 @@ package ui.SelenideTest;
 import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.Test;
 import com.codeborne.selenide.Selectors;
+import ui.SelenideTest.config.ConfigProvider;
 
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
 
 // 2.4. Проверить сохранение товаров в корзине после обновления страницы.
@@ -15,25 +15,34 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
 
     @Test
     void goodsAddAndRefresh() {
-        // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin("admin", "secret123");
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРА В АДМИНКЕ *************
-        $("#n-name").shouldBe(visible);
-        $("#n-name").setValue("Кефир");
-        $("#n-price").setValue("60");
+        long uniqueSuffix = System.nanoTime() % 1_000_000;
+        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+        String productPrice = ConfigProvider.getProductPrice();
+
+        // ************* ВХОД В АДМИНКУ *************
+        loginToAdmin();
+
+        // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ АДМИНКЕ *************
+        $("#n-name").shouldBe(visible).click();
+        $("#n-name").shouldBe(visible).setValue(productName);
+        $("#n-price").shouldBe(visible).setValue(productPrice);
         $("#add-btn").click();
 
         // ************* ИДЕМ НА ВИТРИНУ И ПРОВЕРЯЕМ НАЛИЧИЕ ТОВАРА *************
         $x("//a[normalize-space()='Вернуться на сайт']").click();
-        $x("//*[@data-name='Кефир']").shouldBe(visible);
+
+        // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
+        $("[data-name='" + productName + "']").shouldBe(visible);
+        $("[data-name='" + productName + "']").shouldHave(text(productName));
+        System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
 
         // ************* ДОБАВЛЯЕМ ТОВАР В КОРЗИНУ И ПРОВЕРЯЕМ *************
-        $x("//div[@data-name='Кефир']//button[@data-action='add-to-cart']").click();
+        $x("//div[@data-name='" + productName + "']//button[@data-action='add-to-cart']").click();
         $("#open-cart-btn").click();
 
         // Проверяем, что товар ЕСТЬ в корзине ДО рефреша
-        $x("//div[@id='cart-items']//*[text()='Кефир']").shouldBe(visible);
+        $x("//div[@id='cart-items']//*[text()='" + productName + "']").shouldBe(visible);
         System.out.println("До обновления страницы в корзине есть товар!");
 
         // Закрываем модальное окно корзины
@@ -51,7 +60,7 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
         $("#open-cart-btn").click();
 
         // Проверяем отсутствие добавленного товара в корзине
-        $x("//div[@id='cart-items']//*[text()='Кефир']").shouldNot(exist);
+        $x("//div[@id='cart-items']//*[text()='" + productName + "']").shouldNot(exist);
         System.out.println("Корзина после обновления страницы пустая!");
 
 
@@ -60,6 +69,6 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
 
         // *********** ИДЕМ В АДМИНКУ И УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
         $("[href='/admin']").click();
-        deleteProduct("Кефир");
+        deleteProduct(productName);
     }
 }

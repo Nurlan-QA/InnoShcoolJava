@@ -1,6 +1,7 @@
 package ui.SelenideTest;
 
 import org.junit.jupiter.api.Test;
+import ui.SelenideTest.config.ConfigProvider;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
@@ -11,20 +12,20 @@ public class GoodAddAlertTest extends BaseTestSelenide {
 
     @Test
     void goodsAdd() {
+
+        long uniqueSuffix = System.nanoTime() % 1_000_000;
+        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+        String productPrice = ConfigProvider.getProductPrice();
+
         // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin("admin", "secret123");
+        loginToAdmin();
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРА В АДМИНКЕ *************
-
+        // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ В АДМИНКЕ *************
         $("#n-name").shouldBe(visible).click();
-
-        $("#n-name").setValue("Товар");
-
-        // Вводим цену
-        $("#n-price").setValue("100");
-
-        // Нажимаем кнопку "Создать"
+        $("#n-name").shouldBe(visible).setValue(productName);
+        $("#n-price").shouldBe(visible).setValue(productPrice);
         $("#add-btn").click();
+
 
         // Проверяем наличие тостера об успешном оформлении
         $(".toast").shouldHave(text("Товар успешно добавлен!")).shouldBe(visible);
@@ -32,6 +33,6 @@ public class GoodAddAlertTest extends BaseTestSelenide {
 
         // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
 
-        deleteProduct("Товар");
+        deleteProduct(productName);
     }
 }
