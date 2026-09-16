@@ -10,12 +10,12 @@ import static com.codeborne.selenide.Selenide.*;
 
 public class GoodAddAlertTest extends BaseTestSelenide {
 
+    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final String productPrice = ConfigProvider.getProductPrice();
+
     @Test
     void goodsAdd() {
-
-        long uniqueSuffix = System.nanoTime() % 1_000_000;
-        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
-        String productPrice = ConfigProvider.getProductPrice();
 
         // ************* ВХОД В АДМИНКУ *************
         loginToAdmin();

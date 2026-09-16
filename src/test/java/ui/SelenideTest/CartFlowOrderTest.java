@@ -3,16 +3,12 @@ package ui.SelenideTest;
 import api.api_config.ReqSpec;
 import api.api_methods.Good;
 import api.api_methods.GoodsApi;
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import ui.SelenideTest.config.ConfigProvider;
-import ui.SelenideTest.config.ConfigPrinter;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,33 +21,14 @@ import static com.codeborne.selenide.Selenide.*;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-// 3.1. Добавить три единицы товара в корзину и оплатить их (общая стоимость не должна превышать 300 рублей).
-// 3.5. Хотя бы в одном кейсе обращение к API для генерации тестовых данных.
-// 3.6. Хотя бы в одном кейсе в блоке @AfterEach тестовые данные удаляются.
-
-public class CartFlowOrderTest {
+public class CartFlowOrderTest extends BaseTestSelenide {
 
     private final GoodsApi goodsApi = new GoodsApi();
-    int count = 3;
-
-
-    @BeforeEach
-    void setup() {
-        // Вывод конфигурации в консоль перед тестом
-        ConfigPrinter.printConfig();
-
-        // Настройка Selenide из конфига
-        Configuration.browser = "chrome";
-        Configuration.browserSize = "1920x1080";
-        Configuration.timeout = ConfigProvider.getTimeout();
-        Configuration.baseUrl = ConfigProvider.getBaseUrl();
-
-    }
+    private static final int COUNT = 3;
 
     @AfterEach
     void quitTests() {
-        // УДАЛЕНИЕ ТЕСТОВЫХ ДАННЫХ
-        for (int i = 1; i <= count; i++) {
+        for (int i = 1; i <= COUNT; i++) {
             String productName = ConfigProvider.getProductName() + "_" + i;
             String selector = "input[value*='" + productName + "']";
             $$(selector).shouldHave(sizeGreaterThan(0));
@@ -64,17 +41,16 @@ public class CartFlowOrderTest {
                     .click();
             switchTo().alert().accept();
 
-            $(selector).shouldNot(exist);
             $$(selector).shouldHave(size(0));
-            System.out.println("Тестовые данные успешно удалены!");
+            System.out.println("Товар '" + productName + "' удалён!");
         }
-        Selenide.closeWebDriver();
+        // closeWebDriver() вызовется из BaseTestSelenide.quitTests()
     }
 
     @Test
     void addThreeGoodsWithApi() {
         List<Good> createdGoods = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
+        for (int i = 1; i <= COUNT; i++) {
             String uniqueName = ConfigProvider.getProductName() + "_" + i;
             Good newGood = new Good(uniqueName, 80.00 + i);
 
@@ -95,13 +71,12 @@ public class CartFlowOrderTest {
                 .extract().response();
 
         List<Good> goodsList = response.jsonPath().getList("goods", Good.class);
-        assertThat(goodsList).hasSizeGreaterThanOrEqualTo(count);
-
+        assertThat(goodsList).hasSizeGreaterThanOrEqualTo(COUNT);
 
         open("/");
 
         // Добавляем товары в корзину через UI
-        for (int i = 1; i <= count; i++) {
+        for (int i = 1; i <= COUNT; i++) {
             $("button[data-name='" + ConfigProvider.getProductName() + "_" + i + "']")
                     .shouldBe(visible)
                     .click();
@@ -113,7 +88,7 @@ public class CartFlowOrderTest {
                 .click();
 
         $$(".cart-item")
-                .shouldHave(size(count))
+                .shouldHave(size(COUNT))
                 .filterBy(text(ConfigProvider.getProductName() + "_"))
                 .shouldBe();
 
@@ -132,7 +107,7 @@ public class CartFlowOrderTest {
                 .shouldBe(visible);
         System.out.println("Есть уведомление: Заказ принят в обработку!");
 
-        // *********** ПЕРЕХОД В АДМИНКУ ДЛЯ УДАЛЕНИЯ ТЕСТОВЫХ ДАННЫХ ***********
+        // Логин через метод из BaseTestSelenide
         $("[href='/admin']").click();
         $("#username").setValue(ConfigProvider.getAdminLogin());
         $("#password").setValue(ConfigProvider.getAdminPassword());

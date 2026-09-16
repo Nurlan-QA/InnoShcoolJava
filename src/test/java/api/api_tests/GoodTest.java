@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import io.restassured.response.Response;
+import ui.SelenideTest.config.ConfigProvider;
 
 import java.util.List;
 
@@ -17,13 +18,15 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class GoodTest {
+
+    private final GoodsApi goodsApi = new GoodsApi();
+
     @BeforeEach
     void clearDatabaseBeforeEachTest() {
         System.out.println("Очистка базы перед тестом...");
 
-        // 1. Получаем ответ, но НЕ пытаемся сразу сделать List<Good>
         Response response = given()
-                .spec(ReqSpec.requestSpec)
+                .spec(ReqSpec.requestSpec) // Берет baseUri из ReqSpec (который берет из ApiConfig -> ConfigProvider)
                 .when()
                 .get("/goods/list")
                 .then()
@@ -31,10 +34,8 @@ public class GoodTest {
                 .statusCode(200)
                 .extract().response();
 
-        // 2. Используем JsonPath, чтобы достать именно массив из поля "goods"
-        // Это вернет нам List<Map<String, Object>> или сразу List<Good>, если настроить
+        // Парсим список товаров
         List<Good> allGoods = response.jsonPath().getList("goods", Good.class);
-
         System.out.println("Найдено товаров для удаления: " + allGoods.size());
 
         // 3. Удаляем каждый
@@ -42,7 +43,7 @@ public class GoodTest {
             given()
                     .spec(ReqSpec.requestSpec)
                     .auth()
-                    .basic("admin", "secret123")
+                    .basic(ConfigProvider.getAdminLogin(), ConfigProvider.getAdminPassword())
                     .when()
                     .delete("/goods/" + good.getId())
                     .then()
@@ -52,7 +53,6 @@ public class GoodTest {
         }
         System.out.println("База очищена!");
     }
-    private final GoodsApi goodsApi = new GoodsApi();
 
     // ==========================================
     // ЗАДАЧА 1.1: given/when/then + проверка пустого списка
@@ -60,7 +60,7 @@ public class GoodTest {
     @Test
     void testGetListWithGivenWhenThen() {
         given()
-                .baseUri(ApiConfig.BASE_URL)
+                .baseUri(ApiConfig.BASE_URL) // Берется из ConfigProvider
                 .queryParam("page", 0)
                 .queryParam("size", "100")
                 .when()
@@ -77,7 +77,7 @@ public class GoodTest {
     @Test
     void testGetListWithRequestSpec() {
         given()
-                .spec(ReqSpec.requestSpec) // Используем наш спецификатор (baseUri, auth)
+                .spec(ReqSpec.requestSpec)
                 .when()
                 .get("/goods/list")
                 .then()
@@ -92,8 +92,10 @@ public class GoodTest {
     @Test
     void testAddGoodsRestAssured() {
         long now = System.currentTimeMillis();
-        String uniqueName = "Good_RA" + (now % 1000000);
-        Good newGood = new Good(uniqueName, 99.99);
+        String uniqueName = ConfigProvider.getProductName() + "_RA_" + (now % 1000000);
+        double price = Double.parseDouble(ConfigProvider.getProductPrice());
+
+        Good newGood = new Good(uniqueName, price);
 
         // 1. Создаем товар
         Response createResponse = goodsApi.addGoods(newGood);
@@ -157,8 +159,9 @@ public class GoodTest {
     @Test
     void testDeleteGoods() {
         long now = System.currentTimeMillis();
-        String uniqueName = "Good_delete" + (now % 1000000);
-        Good newGood = new Good(uniqueName, 77.77);
+        String uniqueName = ConfigProvider.getProductName() + "_delete_" + (now % 1000000);
+        double price = Double.parseDouble(ConfigProvider.getProductPrice());
+        Good newGood = new Good(uniqueName, price);
 
         // 1. Создаем товар
         Response createResp = goodsApi.addGoods(newGood);
@@ -194,8 +197,9 @@ public class GoodTest {
     @Test
     void testUpdateGoods() {
         long now = System.currentTimeMillis();
-        String uniqueName = "Good_update" + (now % 1000000);
-        Good newGood = new Good(uniqueName, 55.55);
+        String uniqueName = ConfigProvider.getProductName() + "_update_" + (now % 1000000);
+        double price = Double.parseDouble(ConfigProvider.getProductPrice());
+        Good newGood = new Good(uniqueName, price);
 
         // 1. Создаем товар
         Response createResp = goodsApi.addGoods(newGood);
@@ -204,8 +208,8 @@ public class GoodTest {
         Long createdId = createResp.jsonPath().getLong("data.id");
         System.out.println("**** Создан товар с ID: " + createdId);
 
-        // 2. Обновляем цену
-        double newPrice = 123.45;
+        // 2. Обновляем цену. Использую цену из конфига для "дорогого" товара
+        double newPrice = Double.parseDouble(ConfigProvider.getProductBigPrice());
         Good updatedGood = new Good(uniqueName, newPrice);
 
         Response updateResp = goodsApi.updateGoods(createdId, updatedGood);

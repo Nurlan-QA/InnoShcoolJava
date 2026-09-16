@@ -22,7 +22,7 @@ public class CartTotalPriceTest extends BaseTestSelenide {
     // Количество товаров для теста
     private static final int COUNT = 3;
 
-    // Базовая цена из конфига (например, 50). Итоговая цена будет basePrice + i
+    // Базовая цена из конфига. Итоговая цена будет basePrice + i
     private final int basePriceFromConfig = Integer.parseInt(ConfigProvider.getProductPrice());
 
     @Test

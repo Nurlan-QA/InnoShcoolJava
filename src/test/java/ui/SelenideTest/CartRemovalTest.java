@@ -16,9 +16,9 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class CartRemovalTest extends BaseTestSelenide {
 
-    long uniqueSuffix = System.nanoTime() % 1_000_000;
-    String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
-    String productPrice = ConfigProvider.getProductPrice();
+    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final String productPrice = ConfigProvider.getProductPrice();
 
     // Задаем элементы для DnD
     SelenideElement testProductCart = $(byAttribute("data-name", productName));

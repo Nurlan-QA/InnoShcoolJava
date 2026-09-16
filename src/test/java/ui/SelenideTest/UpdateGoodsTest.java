@@ -15,14 +15,13 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class UpdateGoodsTest extends BaseTestSelenide {
 
-    long uniqueSuffix = System.nanoTime() % 1_000_000;
-    String originalProductName  = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
+    private final String originalProductName  = ConfigProvider.getProductName() + "_" + uniqueSuffix;
     private final String updatedProductName = originalProductName + "_updated";
 
     @Test
     void goodsAdd() {
         // ************* ВХОД В АДМИНКУ *************
-//        loginToAdmin("admin", "secret123");
         loginToAdmin();
 
         // ************* ДОБАВЛЕНИЕ ТОВАРА В АДМИНКЕ *************

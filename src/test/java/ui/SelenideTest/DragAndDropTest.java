@@ -12,9 +12,9 @@ import static com.codeborne.selenide.Condition.*;
 
 public class DragAndDropTest extends BaseTestSelenide {
 
-    long uniqueSuffix = System.nanoTime() % 1_000_000;
-    String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
-    String productPrice = ConfigProvider.getProductPrice();
+    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final String productPrice = ConfigProvider.getProductPrice();
 
     // Задаем элементы для DnD
     SelenideElement testProductCart = $(byAttribute("data-name", productName));
@@ -40,11 +40,8 @@ public class DragAndDropTest extends BaseTestSelenide {
     System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
 
     // *********** ДОБАВЛЯЕМ ТЕСТОВЫЙ ТОВАР МЕТОДОМ Drag-And-Drop *************
-        sleep(1000);
         testProductCart.dragAndDrop(DragAndDropOptions.to(cardButton));
-        sleep(1000);
         testProductCart.dragAndDrop(DragAndDropOptions.to(cardButton));
-        sleep(2000);
 
     // *********** ПРОВЕРЯЕМ, ЧТО ТОВАР ДОБАВИЛСЯ В КОРЗИНУ В КОЛИЧЕСТВЕ ДВУХ ШТУК *************
         cardButton.shouldBe(visible);
