@@ -3,48 +3,31 @@ package ui.SelenideTest;
 import api.api_config.ReqSpec;
 import api.api_methods.Good;
 import api.api_methods.GoodsApi;
-import com.codeborne.selenide.SelenideElement;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
-import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CartFlowOrderTest extends BaseTestSelenide {
 
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final CartPage cartPage = new CartPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
+
     private final GoodsApi goodsApi = new GoodsApi();
     private static final int COUNT = 3;
 
     @AfterEach
-    void quitTests() {
-        for (int i = 1; i <= COUNT; i++) {
-            String productName = ConfigProvider.getProductName() + "_" + i;
-            String selector = "input[value*='" + productName + "']";
-            $$(selector).shouldHave(sizeGreaterThan(0));
-
-            SelenideElement inputField = $$(selector).first();
-            SelenideElement row = inputField.closest("tr");
-
-            row.$("button[data-action='delete']")
-                    .shouldBe(enabled)
-                    .click();
-            switchTo().alert().accept();
-
-            $$(selector).shouldHave(size(0));
-            System.out.println("Товар '" + productName + "' удалён!");
-        }
-        // closeWebDriver() вызовется из BaseTestSelenide.quitTests()
+    void cleanUp() {
+        productCleanup.removeTestProducts();
     }
 
     @Test
@@ -73,44 +56,31 @@ public class CartFlowOrderTest extends BaseTestSelenide {
         List<Good> goodsList = response.jsonPath().getList("goods", Good.class);
         assertThat(goodsList).hasSizeGreaterThanOrEqualTo(COUNT);
 
+        // Открываем витрину
         open("/");
+        goodsPage.assertPageLoaded();
 
-        // Добавляем товары в корзину через UI
+        // Добавляем 3 товара в корзину через PageObject
         for (int i = 1; i <= COUNT; i++) {
-            $("button[data-name='" + ConfigProvider.getProductName() + "_" + i + "']")
-                    .shouldBe(visible)
-                    .click();
+            goodsPage.addProductToCart(ConfigProvider.getProductName() + "_" + i);
         }
 
-        // Проверяем и оформляем заказ
-        $("#open-cart-btn")
-                .shouldBe(visible)
-                .click();
+        // Открываем корзину через PageObject
+        goodsPage.openCart();
 
-        $$(".cart-item")
-                .shouldHave(size(COUNT))
-                .filterBy(text(ConfigProvider.getProductName() + "_"))
-                .shouldBe();
+        // Проверки через CartPage
+        cartPage.assertItemsCount(COUNT);
+        cartPage.assertItemsContainText(ConfigProvider.getProductName() + "_");
 
-        int totalPrice = Integer.parseInt($("#total-price").getText());
+        int totalPrice = cartPage.getTotalPrice();
+        System.out.println("Сумма в корзине: " + totalPrice);
+        assertThat(totalPrice).isLessThanOrEqualTo(300);
 
-        if (totalPrice >= 300) {
-            throw new AssertionError("Сумма корзины (" + totalPrice + ") больше 300!");
-        }
+        // Оформляем заказ
+        cartPage.makeOrder();
 
-        $("#makeOrder").shouldBe(visible, Duration.ofSeconds(5)).click();
-
-        $$(".toast")
-                .filterBy(text("Заказ принят"))
-                .shouldHave(sizeGreaterThan(0))
-                .first()
-                .shouldBe(visible);
-        System.out.println("Есть уведомление: Заказ принят в обработку!");
-
-        // Логин через метод из BaseTestSelenide
-        $("[href='/admin']").click();
-        $("#username").setValue(ConfigProvider.getAdminLogin());
-        $("#password").setValue(ConfigProvider.getAdminPassword());
-        $(".primary").click();
+        // Проверка уведомления
+        cartPage.assertOrderAccepted();
+        System.out.println("Уведомление: Заказ принят в обработку!");
     }
 }

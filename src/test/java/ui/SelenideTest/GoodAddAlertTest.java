@@ -1,7 +1,9 @@
 package ui.SelenideTest;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
@@ -10,29 +12,34 @@ import static com.codeborne.selenide.Selenide.*;
 
 public class GoodAddAlertTest extends BaseTestSelenide {
 
-    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
-    private final String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final LoginPage loginPage = new LoginPage();
+    private final AdminPage adminPage = new AdminPage();
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
+    private final CartPage cartPage = new CartPage();
+
+    private static final long UNIQUE_SUFFIX = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + UNIQUE_SUFFIX;
     private final String productPrice = ConfigProvider.getProductPrice();
+
+    @AfterEach
+    void cleanUp() {
+        productCleanup.removeProductByName(productName);
+    }
+
 
     @Test
     void goodsAdd() {
 
-        // ************* ВХОД В АДМИНКУ *************
+        // Вход в админку
         loginToAdmin();
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ В АДМИНКЕ *************
-        $("#n-name").shouldBe(visible).click();
-        $("#n-name").shouldBe(visible).setValue(productName);
-        $("#n-price").shouldBe(visible).setValue(productPrice);
-        $("#add-btn").click();
-
+        // Создание товара
+        adminPage.assertPageLoaded();
+        adminPage.createProduct(productName, productPrice);
 
         // Проверяем наличие тостера об успешном оформлении
-        $(".toast").shouldHave(text("Товар успешно добавлен!")).shouldBe(visible);
+        adminPage.assertToastContains("Товар успешно добавлен");
         System.out.println("Уведомление: Товар успешно добавлен!");
-
-        // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-
-        deleteProduct(productName);
     }
 }

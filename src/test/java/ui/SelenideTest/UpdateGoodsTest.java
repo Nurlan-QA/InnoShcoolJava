@@ -1,70 +1,61 @@
 package ui.SelenideTest;
 
-import com.codeborne.selenide.SelenideElement;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
-import java.util.UUID;
-
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selectors.byText;
-import static com.codeborne.selenide.Selenide.$;
-
-// 3.4. Войти в админку и отредактировать товар. Выйти на список товаров и проверить, что изменения применились.
+import static com.codeborne.selenide.Selenide.open;
 
 public class UpdateGoodsTest extends BaseTestSelenide {
 
+    private final LoginPage loginPage = new LoginPage();
+    private final AdminPage adminPage = new AdminPage();
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
+
     private final long uniqueSuffix = System.nanoTime() % 1_000_000;
-    private final String originalProductName  = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final String originalProductName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
     private final String updatedProductName = originalProductName + "_updated";
 
+    @AfterEach
+    void cleanUp() {
+        productCleanup.removeProductByName(updatedProductName);
+    }
+
     @Test
-    void goodsAdd() {
-        // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin();
+    void goodsUpdate() {
+        // Вход в админку через LoginPage
+        open("/admin");
+        loginPage.assertPageLoaded();
+        loginPage.login(ConfigProvider.getAdminLogin(), ConfigProvider.getAdminPassword());
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРА В АДМИНКЕ *************
+        adminPage.assertPageLoaded();
 
-        $("#n-name").setValue(originalProductName);
-        $("#n-price").setValue("100");
-        $("#add-btn").click();
-        $(".toast").shouldHave(text("Товар успешно добавлен!")).shouldBe(visible);
+        // Создаём товар
+        adminPage.createProduct(originalProductName, "100");
+        adminPage.assertToastContains("Товар успешно добавлен");
         System.out.println("Уведомление: Товар успешно добавлен!");
 
-        // ************* ИДЕМ НА ВИТРИНУ И ПРОВЕРЯЕМ ТОВАР *************
-        $(byText("Вернуться на сайт")).click();
-
-        // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
-        $("[data-name='" + originalProductName + "']").shouldBe(visible);
-        $("[data-name='" + originalProductName + "']").shouldHave(text(originalProductName));
+        // Идём на витрину и проверяем
+        adminPage.goToSite();
+        goodsPage.assertPageLoaded();
+        goodsPage.assertProductVisible(originalProductName);
+        goodsPage.assertProductHasText(originalProductName);
         System.out.println("Созданный товар '" + originalProductName + "' есть на витрине сайта!");
 
-        // *********** ВОЗВРАЩАЕМСЯ В АДМИНКУ, ЧТОБЫ ИЗМЕНИТЬ ТОВАР *************
-        $("[href='/admin']").shouldBe(visible).click();
+        // Возвращаемся в админку для редактирования
+        goodsPage.goToAdmin();
+        adminPage.assertPageLoaded();
 
-        // Сначала находим поле по старому значению
-        SelenideElement nameInput = $("[value='" + originalProductName + "']");
-        nameInput.shouldBe(visible);
+        // Редактируем товар через AdminPage
+        adminPage.updateProduct(originalProductName, updatedProductName);
 
-        //Запоминаем строку таблицы, в которой находится это поле
-        SelenideElement row = nameInput.closest("tr");
-
-        nameInput.click();
-        nameInput.setValue(updatedProductName);
-
-        row.$("[data-action='update']").click();
-
-        // ************* ИДЕМ НА ВИТРИНУ И ПРОВЕРЯЕМ ИЗМЕНЕННЫЙ ТОВАР *************
-        $(byText("Вернуться на сайт")).click();
-        $("[data-name='" + updatedProductName + "']").shouldBe(visible);
-        $("[data-name='" + updatedProductName + "']").shouldHave(text(updatedProductName));
-        System.out.println("Созданный товар '" + updatedProductName + "' есть на витрине сайта!");
-
-
-
-        // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        $("[href='/admin']").click();
-        deleteProduct(updatedProductName);
+        // Идём на витрину и проверяем изменения
+        adminPage.goToSite();
+        goodsPage.assertPageLoaded();
+        goodsPage.assertProductVisible(updatedProductName);
+        goodsPage.assertProductHasText(updatedProductName);
+        System.out.println("Обновлённый товар '" + updatedProductName + "' есть на витрине сайта!");
     }
 }

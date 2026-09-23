@@ -1,8 +1,10 @@
 package ui.SelenideTest;
 
 import com.codeborne.selenide.Selenide;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.*;
@@ -13,40 +15,48 @@ import static com.codeborne.selenide.Condition.*;
 
 public class CartCheckoutAlertTest extends BaseTestSelenide {
 
+    private final LoginPage loginPage = new LoginPage();
+    private final AdminPage adminPage = new AdminPage();
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
+    private final CartPage cartPage = new CartPage();
+
+    private static final long UNIQUE_SUFFIX = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + UNIQUE_SUFFIX;
+    private final String productBigPrice = ConfigProvider.getProductBigPrice();
+
+    @AfterEach
+    void cleanUp() {
+        productCleanup.removeProductByName(productName);
+    }
+
     @Test
     void checkoutWithExpensiveItem() {
-
-        long uniqueSuffix = System.nanoTime() % 1_000_000;
-        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
-        String productBigPrice = ConfigProvider.getProductBigPrice();
 
         // ************* ВХОД В АДМИНКУ *************
         loginToAdmin();
 
         // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ 300 РУБ В АДМИНКЕ *************
-        $("#n-name").shouldBe(visible).setValue(productName);
-        $("#n-price").shouldBe(visible).setValue(productBigPrice);
-        $("#add-btn").click();
+        adminPage.assertPageLoaded(); // Проверяем, что админка загрузилась
+        adminPage.createProduct(productName, productBigPrice); // Создаём товар через AdminPage
+        adminPage.assertToastContains("Товар успешно добавлен"); // Проверяем уведомление
+        System.out.println("Уведомление: Товар успешно добавлен!");
 
         // ************* ВОЗВРАЩАЕМСЯ НА САЙТ И ДОБАВЛЯЕМ ТОВАР В КОРЗИНУ *************
-        $(byText("Вернуться на сайт")).click();
+        adminPage.goToSite();
+        goodsPage.assertPageLoaded();
 
         // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
-        $("[data-name='" + productName + "']").shouldBe(visible);
-        $("[data-name='" + productName + "']").shouldHave(text(productName));
+        goodsPage.assertProductVisible(productName);
+        goodsPage.assertProductHasText(productName);
         System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
 
-        $("[data-name='" + productName + "']")
-                .find("button[data-action='add-to-cart']")
-                .click();
-
-
-
+        // ************* ДОБАВЛЯЕМ ТОВАР В КОРЗИНУ *************
+        goodsPage.addProductToCart(productName);
 
         // ************* ОТКРЫВАЕМ КОРЗИНУ И ПЫТАЕМСЯ ОФОРМИТЬ ТОВАР *************
-        $("#open-cart-btn").shouldBe(visible).click();
-        $(withText("Оформить заказ")).shouldBe(visible).click();
-
+        goodsPage.openCart();
+        cartPage.makeOrder(); // Оформляем заказ
 
         var alert = Selenide.switchTo().alert();
         String alertText = alert.getText();
@@ -54,12 +64,6 @@ public class CartCheckoutAlertTest extends BaseTestSelenide {
         alert.accept();
 
         // *********** ЗАКРЫВАЕМ МОДАЛЬНОЕ ОКНО КОРЗИНЫ *************
-        $("#close-modal").click();
-
-        // *********** ОТКРЫВАЕМ АДМИНКУ *************
-        $("[href='/admin']").click();
-
-        // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        deleteProduct(productName);
+        cartPage.closeCartModal();
     }
 }

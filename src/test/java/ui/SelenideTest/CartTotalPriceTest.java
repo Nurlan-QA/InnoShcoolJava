@@ -1,124 +1,72 @@
 package ui.SelenideTest;
 
-import ui.SelenideTest.config.ConfigProvider;
-import ui.SelenideTest.config.ConfigPrinter;
-
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selectors.*;
-import static com.codeborne.selenide.Selenide.*;
+import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
-// 3.2. Добавить в корзину несколько разных товаров и проверить, что общая цена в корзине считается корректно.
+import static com.codeborne.selenide.Selenide.open;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CartTotalPriceTest extends BaseTestSelenide {
 
-    // Количество товаров для теста
-    private static final int COUNT = 3;
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final CartPage cartPage = new CartPage();
+    private final LoginPage loginPage = new LoginPage();
+    private final AdminPage adminPage = new AdminPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
 
-    // Базовая цена из конфига. Итоговая цена будет basePrice + i
+    private static final int COUNT = 3;
     private final int basePriceFromConfig = Integer.parseInt(ConfigProvider.getProductPrice());
+
+    @AfterEach
+    void cleanUp() {
+        productCleanup.removeTestProducts();
+    }
 
     @Test
     void cartTotalPrice() {
-        String baseProductName = ConfigProvider.getProductName();
-
-        // ************* ВХОД В АДМИНКУ *************
-        loginToAdmin();
-
+        String baseName = ConfigProvider.getProductName();
         int sum = 0;
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРОВ В АДМИНКЕ *************
-        for (int i = 1; i <= COUNT; i++) {
-            // Формируем уникальное имя: Notebook_1, Notebook_2...
-            String currentProductName = baseProductName + "_" + i;
+        // Вход в админку через LoginPage
+        open("/admin");
+        loginPage.assertPageLoaded();
+        loginPage.login(ConfigProvider.getAdminLogin(), ConfigProvider.getAdminPassword());
 
-            // Рассчитываем цену: базовая из конфига + смещение
+        // Проверяем, что админка загрузилась
+        adminPage.assertPageLoaded();
+
+        // Создаём товары через AdminPage
+        for (int i = 1; i <= COUNT; i++) {
+            String name = baseName + "_" + i;
             int price = basePriceFromConfig + i;
             sum += price;
-
-            $("#n-name")
-                    .shouldBe(visible)
-                    .setValue(currentProductName);
-
-            $("#n-price")
-                    .shouldBe(visible)
-                    .setValue(String.valueOf(price));
-
-            $("#add-btn").click();
-
-            System.out.println("Добавлен товар: " + currentProductName + ", цена: " + price);
+            adminPage.createProduct(name, String.valueOf(price));
+            System.out.println("Добавлен товар: " + name + ", цена: " + price);
         }
 
-        System.out.println("Ожидаемая сумма (расчет): " + sum);
+        System.out.println("Ожидаемая сумма: " + sum);
 
-        // ************* ВОЗВРАТ НА САЙТ И ДОБАВЛЕНИЕ В КОРЗИНУ *************
-        $x("//a[normalize-space()='Вернуться на сайт']").click();
+        // Возврат на витрину
+        adminPage.goToSite();
+        goodsPage.assertPageLoaded();
 
+        // Добавляем в корзину через GoodsPage
         for (int i = 1; i <= COUNT; i++) {
-            String goodName = baseProductName + "_" + i;
-
-            // Проверка наличия товара на витрине
-            $("[data-name='" + goodName + "']").shouldBe(visible);
-
-            // Добавление в корзину
-            $("button[data-name='" + goodName + "']")
-                    .shouldBe(visible)
-                    .click();
+            goodsPage.addProductToCart(baseName + "_" + i);
         }
 
-        // ************* ПРОВЕРКА СУММЫ В КОРЗИНЕ *************
-        $("#open-cart-btn")
-                .shouldBe(visible)
-                .click();
+        // Открываем корзину и проверяем
+        goodsPage.openCart();
+        cartPage.assertItemsCount(COUNT);
 
-        $$(".cart-item")
-                .shouldHave(size(COUNT))
-                .filterBy(text(baseProductName)) // Проверяем, что в корзине товары с нашим префиксом
-                .shouldBe();
+        int totalPrice = cartPage.getTotalPrice();
+        System.out.println("Сумма в корзине (UI): " + totalPrice);
 
-        String totalPriceText = $("#total-price").getText();
-        int totalPrice = Integer.parseInt(totalPriceText);
+        assertEquals(sum, totalPrice, "Сумма в корзине не совпадает с расчётной");
+        System.out.println("Сумма товаров в корзине верная!");
 
-        System.out.println("Сумма товаров в корзине (UI): " + totalPrice);
-
-        if (totalPrice == sum) {
-            System.out.println("✅ Сумма товаров в корзине верная!");
-        } else {
-            throw new AssertionError(
-                    "❌ Сумма товаров (" + totalPrice + ") не соответствует ожидаемому значению (" + sum + ")"
-            );
-        }
-
-        // Закрываем модальное окно корзины
-        $("#close-modal").click();
-
-        // ************* ОЧИСТКА ДАННЫХ (Удаление товаров) *************
-        $("[href='/admin']").click(); // Переход в админку (логин уже выполнен в начале)
-
-        for (int i = 1; i <= COUNT; i++) {
-            String productName = baseProductName + "_" + i;
-            String selector = "input[value*='" + productName + "']";
-
-            $$(selector).shouldHave(sizeGreaterThan(0));
-
-            SelenideElement inputField = $$(selector).first();
-            SelenideElement row = inputField.closest("tr");
-
-            row.$("button[data-action='delete']")
-                    .shouldBe(enabled)
-                    .click();
-
-            switchTo().alert().accept();
-
-            $(selector).shouldNot(exist);
-            System.out.println("Товар '" + productName + "' успешно удален.");
-        }
+        cartPage.closeCartModal();
     }
 }

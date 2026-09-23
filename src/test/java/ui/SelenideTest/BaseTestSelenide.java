@@ -1,29 +1,27 @@
 package ui.SelenideTest;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
 import ui.SelenideTest.config.ConfigProvider;
 import ui.SelenideTest.config.ConfigPrinter;
+import ui.SelenideTest.pages.AdminPage;
+import ui.SelenideTest.pages.GoodsPage;
+import ui.SelenideTest.pages.LoginPage;
 
-import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.*;
 
 public abstract class BaseTestSelenide {
 
+    protected final LoginPage loginPage = new LoginPage();
+    protected final GoodsPage goodsPage = new GoodsPage();
+    protected final AdminPage adminPage = new AdminPage();
+
     @BeforeEach
     void setup() {
-
-        // Выводим конфигурацию в консоль перед каждым тестом, кроме credentials
         ConfigPrinter.printConfig();
 
-        // Настройка Selenide из конфига
         Configuration.browser = "chrome";
         Configuration.browserSize = "1920x1080";
         Configuration.timeout = ConfigProvider.getTimeout();
@@ -37,49 +35,44 @@ public abstract class BaseTestSelenide {
         Selenide.closeWebDriver();
     }
 
-
-    // Вспомогательный метод, чтобы не дублировать код клика кнопки
-    private void performLogin(String username, String password) {
-        $("[href='/admin']").click();
-        $("#username").setValue(username);
-        $("#password").setValue(password);
-        $(".primary").click();
-    }
-
     /**
-     * Стандартный вход: берет логин и пароль из config.properties.
-     * Используется в позитивных тестах.
+     * Вход в админку через PageObject.
+     * Логин и пароль берутся из config.properties.
      */
     protected void loginToAdmin() {
-
-        String username = ConfigProvider.getAdminLogin();
-        String password = ConfigProvider.getAdminPassword();
-        performLogin(username, password);
+        goodsPage.goToAdmin();
+        loginPage.assertPageLoaded();
+        loginPage.login(
+                ConfigProvider.getAdminLogin(),
+                ConfigProvider.getAdminPassword()
+        );
     }
 
     /**
-     * Вход с переданными параметрами.
-     * Используется специально для негативных тестов (неверный логин/пароль).
+     * Вход в админку с произвольными параметрами.
+     * Используется для негативных тестов.
      */
     protected void loginToAdminInvalid(String username, String password) {
-        performLogin(username, password);
+        goodsPage.goToAdmin();
+        loginPage.login(username, password);
     }
 
+    /**
+     * Удаление товара через PageObject.
+     * Сначала открывает /admin, логинится, затем удаляет.
+     */
     protected void deleteProduct(String productName) {
+        open("/admin");
 
-        String selector = "input[value*='" + productName + "']";
-        $$(selector).shouldHave(sizeGreaterThan(0));
+        // Если видна форма логина — входим
+        if (loginPage.loginField.isDisplayed()) {
+            loginPage.login(
+                    ConfigProvider.getAdminLogin(),
+                    ConfigProvider.getAdminPassword()
+            );
+        }
 
-        SelenideElement inputField = $$(selector).first();
-        SelenideElement row = inputField.closest("tr");
-
-        // 6. Находим кнопку удаления ВНУТРИ этой строки и кликаем
-        row.$("button[data-action='delete']")
-                .shouldBe(enabled) // Ждем, пока кнопка станет активной
-                .click();
-        switchTo().alert().accept();
-
-        $x("//*[@value='" + productName + "']").shouldNot(exist);
+        adminPage.deleteProductByName(productName);
         System.out.println("Тестовые данные успешно удалены!");
     }
 }

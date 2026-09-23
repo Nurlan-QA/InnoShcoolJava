@@ -2,8 +2,10 @@ package ui.SelenideTest;
 
 import com.codeborne.selenide.DragAndDropOptions;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.*;
@@ -12,46 +14,51 @@ import static com.codeborne.selenide.Condition.*;
 
 public class DragAndDropTest extends BaseTestSelenide {
 
-    private final long uniqueSuffix = System.nanoTime() % 1_000_000;
-    private final String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
+    private final AdminPage adminPage = new AdminPage();
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
+
+    private static final long UNIQUE_SUFFIX = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + UNIQUE_SUFFIX;
     private final String productPrice = ConfigProvider.getProductPrice();
 
-    // Задаем элементы для DnD
-    SelenideElement testProductCart = $(byAttribute("data-name", productName));
-    SelenideElement cardButton = $x("//*[@id = 'open-cart-btn']");
+    @AfterEach
+    void cleanUp() {
+        productCleanup.removeProductByName(productName);
+    }
 
     @Test
     void checkoutWithExpensiveItem() {
 
-    // ************* ВХОД В АДМИНКУ *************
-    loginToAdmin();
+        // Вход в админку
+        loginToAdmin();
 
-    // ************* ДОБАВЛЕНИЕ ТЕСТОВОГО ТОВАРА В АДМИНКЕ *************
-    $("#n-name").shouldBe(visible).setValue(productName);
-    $("#n-price").shouldBe(visible).setValue(productPrice);
-    $("#add-btn").click();
+        // Создание товара
+        adminPage.assertPageLoaded();
+        adminPage.createProduct(productName, productPrice);
+        adminPage.assertToastContains("Товар успешно добавлен");
+        System.out.println("Уведомление: Товар успешно добавлен!");
 
-    // *********** ВОЗВРАЩАЕМСЯ НА САЙТ *************
-    $(byText("Вернуться на сайт")).click();
+        // Возврат на витрину
+        adminPage.goToSite();
+        goodsPage.assertPageLoaded();
 
-    // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
-    $("[data-name='" + productName + "']").shouldBe(visible);
-    $("[data-name='" + productName + "']").shouldHave(text(productName));
-    System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
+        // Проверка наличия товара
+        goodsPage.assertProductVisible(productName);
+        goodsPage.assertProductHasText(productName);
+        System.out.println("Товар '" + productName + "' есть на витрине!");
 
-    // *********** ДОБАВЛЯЕМ ТЕСТОВЫЙ ТОВАР МЕТОДОМ Drag-And-Drop *************
-        testProductCart.dragAndDrop(DragAndDropOptions.to(cardButton));
-        testProductCart.dragAndDrop(DragAndDropOptions.to(cardButton));
+        // Drag-and-drop в корзину
+        goodsPage.dragProductToCart(productName);
+        System.out.println("Товар добавлен в корзину через DnD!");
 
-    // *********** ПРОВЕРЯЕМ, ЧТО ТОВАР ДОБАВИЛСЯ В КОРЗИНУ В КОЛИЧЕСТВЕ ДВУХ ШТУК *************
-        cardButton.shouldBe(visible);
-        $("#cart-count").shouldHave(text("2"));
+        // Drag-and-drop в корзину
+        goodsPage.dragProductToCart(productName);
+        System.out.println("Товар добавлен в корзину через DnD!");
+
+        // Проверяем, что в корзине два товара
+        goodsPage.assertCartCount(2);
         System.out.println("Товар добавлен в корзину в количестве 2 штук!");
 
-    // *********** ОТКРЫВАЕМ АДМИНКУ ***********
-        $("[href='/admin']").click();
-
-    // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        deleteProduct(productName);
     }
 }

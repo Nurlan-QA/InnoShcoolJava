@@ -3,8 +3,10 @@ package ui.SelenideTest;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
+import ui.SelenideTest.pages.*;
 
 import java.util.List;
 
@@ -16,52 +18,53 @@ import static com.codeborne.selenide.Selectors.*;
 
 public class GoodsAddToCartTest extends BaseTestSelenide {
 
+    private final AdminPage adminPage = new AdminPage();
+    private final GoodsPage goodsPage = new GoodsPage();
+    private final ProductCleanup productCleanup = new ProductCleanup();
+    private final CartPage cartPage = new CartPage();
+
+    private static final long UNIQUE_SUFFIX = System.nanoTime() % 1_000_000;
+    private final String productName = ConfigProvider.getProductName() + "_" + UNIQUE_SUFFIX;
+    private final String productPrice = ConfigProvider.getProductPrice();
+
+    @AfterEach
+    void cleanUp() {
+        productCleanup.removeProductByName(productName);
+    }
+
     @Test
     void goodsAddInCart() {
 
-        long uniqueSuffix = System.nanoTime() % 1_000_000;
-        String productName = ConfigProvider.getProductName() + "_" + uniqueSuffix;
-        String productPrice = ConfigProvider.getProductPrice();
-
-        // ************* ВХОД В АДМИНКУ *************
+        // Вход в админку
         loginToAdmin();
 
-        // ************* ДОБАВЛЕНИЕ ТОВАРА ДОРОЖЕ АДМИНКЕ *************
-        $("#n-name").shouldBe(visible).click();
-        $("#n-name").shouldBe(visible).setValue(productName);
-        $("#n-price").shouldBe(visible).setValue(productPrice);
-        $("#add-btn").click();
+        // Создание товара
+        adminPage.assertPageLoaded();
+        adminPage.createProduct(productName, productPrice);
+        adminPage.assertToastContains("Товар успешно добавлен");
+        System.out.println("Уведомление: Товар успешно добавлен!");
 
-        // ************* ИДЕМ НА ВИТРИНУ И ПРОВЕРЯЕМ НАЛИЧИЕ ТОВАРА *************
-        $x("//a[normalize-space()='Вернуться на сайт']").click();
+        // Возврат на витрину
+        adminPage.goToSite();
+        goodsPage.assertPageLoaded();
 
-        // *********** ПРОВЕРЯЕМ НАЛИЧИЕ ТЕСТОВОГО ТОВАРА *************
-        $("[data-name='" + productName + "']").shouldBe(visible);
-        $("[data-name='" + productName + "']").shouldHave(text(productName));
-        System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
+        // Проверка наличия товара
+        goodsPage.assertProductVisible(productName);
+        goodsPage.assertProductHasText(productName);
+        System.out.println("Товар '" + productName + "' есть на витрине!");
 
         // ************* ДОБАВЛЯЕМ ТОВАР В КОРЗИНУ И ПРОВЕРЯЕМ *************
-        // Нажимаем на кнопку 'В корзину' у нашего товара
-        $("button[data-name='" + productName + "']").click();
+        goodsPage.addProductToCart(productName);
 
-        // Нажимаем на кнопку корзины
-        $("#open-cart-btn").click();
+        // Открываем корзину
+        goodsPage.openCart();
 
         // Проверяем наличие добавленного товара в корзине
-        $(".cart-item").shouldHave(text(productName));
-
-        // Проверка, что корзина не пуста
-        $x("//div[@id='cart-items']//*[text()='" + productName + "']").shouldBe(visible);
-        System.out.println("Добавленный товар в корзину отображается в ней!");
+        cartPage.shouldBeGoodInCart(productName);
+        System.out.println("Добавленный товар в корзине, отображается в ней!");
 
         // Закрываем модальное окно корзины
-        $("#close-modal").click();
-
-        // *********** ОТКРЫВАЕМ АДМИНКУ ***********
-        $("[href='/admin']").click();
-
-        // *********** УДАЛЯЕМ ТЕСТОВЫЙ ТОВАР *************
-        deleteProduct(productName);
+        cartPage.closeCartModal();
 
     }
 }
