@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
 import ui.SelenideTest.pages.*;
 
-import static com.codeborne.selenide.Selenide.open;
-
 public class GoodsAddAdminTest extends BaseTestSelenide {
 
     private final AdminPage adminPage = new AdminPage();
@@ -36,7 +34,6 @@ public class GoodsAddAdminTest extends BaseTestSelenide {
 
         // Проверяем уведомление
         adminPage.assertToastContains("Товар успешно добавлен");
-        System.out.println("Уведомление: Товар успешно добавлен!");
 
         // Переходим на витрину
         adminPage.goToSite();
@@ -45,8 +42,6 @@ public class GoodsAddAdminTest extends BaseTestSelenide {
         // Проверяем наличие товара
         goodsPage.assertProductVisible(productName);
         goodsPage.assertProductHasText(productName);
-        System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
-
     }
 }
 

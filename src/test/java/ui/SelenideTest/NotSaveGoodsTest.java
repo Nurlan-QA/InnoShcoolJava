@@ -1,19 +1,15 @@
 package ui.SelenideTest;
 
-import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import com.codeborne.selenide.Selectors;
 import ui.SelenideTest.config.ConfigProvider;
 import ui.SelenideTest.pages.AdminPage;
 import ui.SelenideTest.pages.CartPage;
 import ui.SelenideTest.pages.GoodsPage;
 import ui.SelenideTest.pages.ProductCleanup;
-
-import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
 
-// 2.4. Проверить сохранение товаров в корзине после обновления страницы.
+// Проверить сохранение товаров в корзине после обновления страницы.
 // Так как товар не сохраняется в корзине, то проверяем, что товар отсутствует в корзине
 
 public class NotSaveGoodsTest extends BaseTestSelenide {
@@ -35,7 +31,6 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
     @Test
     void goodsAddAndRefresh() {
 
-
         // Вход в админку
         loginToAdmin();
 
@@ -56,7 +51,6 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
         // Проверяем наличие товара
         goodsPage.assertProductVisible(productName);
         goodsPage.assertProductHasText(productName);
-        System.out.println("Созданный товар '" + productName + "' есть на витрине сайта!");
 
         // ************* ДОБАВЛЯЕМ ТОВАР В КОРЗИНУ И ПРОВЕРЯЕМ *************
         goodsPage.addProductToCart(productName);
@@ -66,7 +60,6 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
 
         // Проверяем, что товар ЕСТЬ в корзине ДО рефреша
         cartPage.shouldBeGoodInCart(productName);
-        System.out.println("До обновления страницы в корзине есть товар!");
 
         // Закрываем модальное окно корзины
         cartPage.closeCartModal();
@@ -82,7 +75,6 @@ public class NotSaveGoodsTest extends BaseTestSelenide {
 
         // Проверяем отсутствие добавленного товара в корзине
         cartPage.goodNotInCart(productName);
-        System.out.println("Корзина после обновления страницы пустая!");
 
         // Закрываем модальное окно корзины
         cartPage.closeCartModal();

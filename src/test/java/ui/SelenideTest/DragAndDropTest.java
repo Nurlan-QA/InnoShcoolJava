@@ -1,16 +1,9 @@
 package ui.SelenideTest;
 
-import com.codeborne.selenide.DragAndDropOptions;
-import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
 import ui.SelenideTest.pages.*;
-
-import static com.codeborne.selenide.Selectors.*;
-import static com.codeborne.selenide.Selenide.*;
-import static com.codeborne.selenide.Condition.*;
-
 
 public class DragAndDropTest extends BaseTestSelenide {
 
@@ -29,36 +22,21 @@ public class DragAndDropTest extends BaseTestSelenide {
 
     @Test
     void checkoutWithExpensiveItem() {
-
-        // Вход в админку
         loginToAdmin();
 
-        // Создание товара
         adminPage.assertPageLoaded();
         adminPage.createProduct(productName, productPrice);
         adminPage.assertToastContains("Товар успешно добавлен");
-        System.out.println("Уведомление: Товар успешно добавлен!");
 
-        // Возврат на витрину
         adminPage.goToSite();
         goodsPage.assertPageLoaded();
 
-        // Проверка наличия товара
         goodsPage.assertProductVisible(productName);
         goodsPage.assertProductHasText(productName);
-        System.out.println("Товар '" + productName + "' есть на витрине!");
 
-        // Drag-and-drop в корзину
         goodsPage.dragProductToCart(productName);
-        System.out.println("Товар добавлен в корзину через DnD!");
-
-        // Drag-and-drop в корзину
         goodsPage.dragProductToCart(productName);
-        System.out.println("Товар добавлен в корзину через DnD!");
 
-        // Проверяем, что в корзине два товара
         goodsPage.assertCartCount(2);
-        System.out.println("Товар добавлен в корзину в количестве 2 штук!");
-
     }
 }

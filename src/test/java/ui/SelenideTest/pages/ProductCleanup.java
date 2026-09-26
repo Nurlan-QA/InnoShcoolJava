@@ -1,6 +1,7 @@
 package ui.SelenideTest.pages;
 
 import com.codeborne.selenide.SelenideElement;
+import io.qameta.allure.Step;
 import ui.SelenideTest.config.ConfigProvider;
 
 import java.time.Duration;
@@ -13,9 +14,8 @@ public class ProductCleanup {
     private final LoginPage loginPage = new LoginPage();
     private static final int COUNT = 3;
 
-    /**
-     * Удаляет тестовые товары Notebook_1, Notebook_2, Notebook_3 из таблицы в админке.
-     */
+    // Бизнес-метод: удаляет сразу 3 тестовых товара
+    @Step("Удаление всех тестовых товаров (Notebook_1, Notebook_2, Notebook_3)")
     public void removeTestProducts() {
         for (int i = 1; i <= COUNT; i++) {
             String productName = ConfigProvider.getProductName() + "_" + i;
@@ -23,10 +23,8 @@ public class ProductCleanup {
         }
     }
 
-    /**
-     * Удаляет товар с произвольным именем из таблицы в админке.
-     * Сам открывает /admin, логинится и ждёт загрузку таблицы.
-     */
+    // Бизнес-метод: полный сценарий — открыть админку, залогиниться, удалить товар
+    @Step("Удаление товара '{productName}' через админку")
     public void removeProductByName(String productName) {
         open("/admin");
 

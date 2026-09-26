@@ -1,5 +1,6 @@
 package ui.SelenideTest;
 
+import io.qameta.allure.Step;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
@@ -62,11 +63,18 @@ public class CartTotalPriceTest extends BaseTestSelenide {
         cartPage.assertItemsCount(COUNT);
 
         int totalPrice = cartPage.getTotalPrice();
-        System.out.println("Сумма в корзине (UI): " + totalPrice);
+        checkTotalPrice(totalPrice, sum);
 
-        assertEquals(sum, totalPrice, "Сумма в корзине не совпадает с расчётной");
-        System.out.println("Сумма товаров в корзине верная!");
+
 
         cartPage.closeCartModal();
+    }
+
+    @Step("Проверка: сумма в корзине ({actual}) равна расчётной ({expected})")
+    private void checkTotalPrice(int actual, int expected) {
+        org.junit.jupiter.api.Assertions.assertEquals(
+                expected, actual,
+                "Сумма в корзине не совпадает с расчётной"
+        );
     }
 }

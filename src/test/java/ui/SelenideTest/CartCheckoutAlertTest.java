@@ -13,6 +13,16 @@ import static com.codeborne.selenide.Condition.*;
 // 2.5. Добавить в корзину товаров более чем на 300 рублей и нажать на кнопку «Оформить заказ».
 // Проверить, что отображается JS Alert.
 
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Description;
+
+@Feature("Корзина")
+@Story("Оформление заказа")
+@Severity(SeverityLevel.NORMAL)
+
 public class CartCheckoutAlertTest extends BaseTestSelenide {
 
     private final LoginPage loginPage = new LoginPage();
@@ -25,6 +35,7 @@ public class CartCheckoutAlertTest extends BaseTestSelenide {
     private final String productName = ConfigProvider.getProductName() + "_" + UNIQUE_SUFFIX;
     private final String productBigPrice = ConfigProvider.getProductBigPrice();
 
+    @Description("Добавление товаров дороже 300 руб и проверка алерта")
     @AfterEach
     void cleanUp() {
         productCleanup.removeProductByName(productName);

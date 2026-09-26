@@ -31,7 +31,6 @@ public class CartRemovalTest extends BaseTestSelenide {
         adminPage.assertPageLoaded();
         adminPage.createProduct(productName, productPrice);
         adminPage.assertToastContains("Товар успешно добавлен");
-        System.out.println("Уведомление: Товар успешно добавлен!");
 
         // Возврат на витрину
         adminPage.goToSite();
@@ -40,24 +39,20 @@ public class CartRemovalTest extends BaseTestSelenide {
         // Проверка наличия товара
         goodsPage.assertProductVisible(productName);
         goodsPage.assertProductHasText(productName);
-        System.out.println("Товар '" + productName + "' есть на витрине!");
 
         // Drag-and-drop в корзину
         goodsPage.dragProductToCart(productName);
         goodsPage.assertCartCount(1);
-        System.out.println("Товар добавлен в корзину через DnD!");
 
         // Открыть корзину
         goodsPage.openCart();
 
         // Удалить товар из корзины
         cartPage.removeProductFromCart(productName);
-        System.out.println("Товар удалён из корзины!");
 
         // Закрыть корзину и проверить счётчик
         cartPage.closeCartModal();
         goodsPage.assertCartCount(0);
-        System.out.println("Счётчик корзины: 0 товаров.");
 
         // Очистка: удалить товар из админки
         goodsPage.goToAdmin();

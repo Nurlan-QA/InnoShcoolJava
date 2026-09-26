@@ -5,10 +5,7 @@ import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
 import ui.SelenideTest.pages.*;
 
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.*;
-
-// 3.3. Войти в админку и добавить товар. Проверить уведомление после добавления товара.
+// Войти в админку и добавить товар. Проверить уведомление после добавления товара.
 
 public class GoodAddAlertTest extends BaseTestSelenide {
 
@@ -27,7 +24,6 @@ public class GoodAddAlertTest extends BaseTestSelenide {
         productCleanup.removeProductByName(productName);
     }
 
-
     @Test
     void goodsAdd() {
 
@@ -40,6 +36,5 @@ public class GoodAddAlertTest extends BaseTestSelenide {
 
         // Проверяем наличие тостера об успешном оформлении
         adminPage.assertToastContains("Товар успешно добавлен");
-        System.out.println("Уведомление: Товар успешно добавлен!");
     }
 }

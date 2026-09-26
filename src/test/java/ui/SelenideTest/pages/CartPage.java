@@ -2,6 +2,7 @@ package ui.SelenideTest.pages;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import io.qameta.allure.Step;
 import ui.SelenideTest.asserts.PageAssert;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -19,25 +20,29 @@ public class CartPage {
     private final ElementsCollection cartItems = $$(".cart-item");
 
     // --- Методы взаимодействия ---
+    @Step("Нажать кнопку 'Оформить заказ'")
     public void makeOrder() {
         makeOrderBtn.click();
     }
 
+    @Step("Закрыть модальное окно корзины")
     public void closeCartModal() {
         closeModalBtn.click();
     }
 
+    @Step("Получить количество товаров в корзине")
     public int getCartCount() {
         return Integer.parseInt(cartCount.getText());
     }
 
+    @Step("Получить итоговую сумму корзины")
     public int getTotalPrice() {
         String raw = totalPriceElement.getText();
         String digitsOnly = raw.replaceAll("[^\\d]", "");
         return digitsOnly.isEmpty() ? 0 : Integer.parseInt(digitsOnly);
     }
 
-    // Удалить товар из корзины по имени
+    @Step("Удалить товар '{productName}' из корзины")
     public void removeProductFromCart(String productName) {
         SelenideElement cartItemRow = $$(".cart-item")
                 .filterBy(text(productName))
@@ -49,31 +54,39 @@ public class CartPage {
         cartItemRow.shouldNotBe(exist);
     }
 
-    public void shouldBeGoodInCart(String productName){
-        SelenideElement cartItemCarts = $(".cart-item").shouldHave(text(productName));
-    }
-
-    public void goodNotInCart(String productName){
-        SelenideElement cartItemCarts = $(".cart-item").shouldNot(exist);
-    }
-
     // --- Проверки ---
+
+    @Step("Проверка: товар '{productName}' есть в корзине")
+    public void shouldBeGoodInCart(String productName) {
+        $(".cart-item").shouldHave(text(productName));
+    }
+
+    @Step("Проверка: товар '{productName}' отсутствует в корзине")
+    public void goodNotInCart(String productName) {
+        $(".cart-item").shouldNot(exist);
+    }
+
+    @Step("Проверка: итоговая сумма видна")
     public void assertTotalPriceVisible() {
         PageAssert.isVisible(totalPriceElement);
     }
 
+    @Step("Проверка: кнопка 'Оформить заказ' видна")
     public void assertMakeOrderButtonVisible() {
         PageAssert.isVisible(makeOrderBtn);
     }
 
+    @Step("Проверка: количество товаров в корзине равно {expectedCount}")
     public void assertItemsCount(int expectedCount) {
         cartItems.shouldHave(size(expectedCount));
     }
 
+    @Step("Проверка: товары в корзине содержат текст '{expectedText}'")
     public void assertItemsContainText(String expectedText) {
         cartItems.filterBy(text(expectedText)).shouldHave(sizeGreaterThan(0));
     }
 
+    @Step("Проверка: заказ принят (есть уведомление 'Заказ принят')")
     public void assertOrderAccepted() {
         $$(".toast")
                 .filterBy(text("Заказ принят"))

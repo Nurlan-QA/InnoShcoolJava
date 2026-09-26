@@ -35,14 +35,12 @@ public class UpdateGoodsTest extends BaseTestSelenide {
         // Создаём товар
         adminPage.createProduct(originalProductName, "100");
         adminPage.assertToastContains("Товар успешно добавлен");
-        System.out.println("Уведомление: Товар успешно добавлен!");
 
         // Идём на витрину и проверяем
         adminPage.goToSite();
         goodsPage.assertPageLoaded();
         goodsPage.assertProductVisible(originalProductName);
         goodsPage.assertProductHasText(originalProductName);
-        System.out.println("Созданный товар '" + originalProductName + "' есть на витрине сайта!");
 
         // Возвращаемся в админку для редактирования
         goodsPage.goToAdmin();
@@ -56,6 +54,6 @@ public class UpdateGoodsTest extends BaseTestSelenide {
         goodsPage.assertPageLoaded();
         goodsPage.assertProductVisible(updatedProductName);
         goodsPage.assertProductHasText(updatedProductName);
-        System.out.println("Обновлённый товар '" + updatedProductName + "' есть на витрине сайта!");
+
     }
 }

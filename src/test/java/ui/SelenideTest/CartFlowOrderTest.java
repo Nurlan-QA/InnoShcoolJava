@@ -3,11 +3,14 @@ package ui.SelenideTest;
 import api.api_config.ReqSpec;
 import api.api_methods.Good;
 import api.api_methods.GoodsApi;
+import com.codeborne.selenide.Condition;
+import io.qameta.allure.Step;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import ui.SelenideTest.config.ConfigProvider;
 import ui.SelenideTest.pages.*;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +29,13 @@ public class CartFlowOrderTest extends BaseTestSelenide {
     private static final int COUNT = 3;
 
     @AfterEach
-    void cleanUp() {
+    void cleanUpProducts() {
         productCleanup.removeTestProducts();
     }
 
     @Test
     void addThreeGoodsWithApi() {
+
         List<Good> createdGoods = new ArrayList<>();
         for (int i = 1; i <= COUNT; i++) {
             String uniqueName = ConfigProvider.getProductName() + "_" + i;
@@ -62,7 +66,7 @@ public class CartFlowOrderTest extends BaseTestSelenide {
 
         // Добавляем 3 товара в корзину через PageObject
         for (int i = 1; i <= COUNT; i++) {
-            goodsPage.addProductToCart(ConfigProvider.getProductName() + "_" + i);
+        goodsPage.addProductToCart(ConfigProvider.getProductName() + "_" + i);
         }
 
         // Открываем корзину через PageObject
@@ -77,10 +81,21 @@ public class CartFlowOrderTest extends BaseTestSelenide {
         assertThat(totalPrice).isLessThanOrEqualTo(300);
 
         // Оформляем заказ
-        cartPage.makeOrder();
+        cartPage.makeOrder();;
 
         // Проверка уведомления
         cartPage.assertOrderAccepted();
         System.out.println("Уведомление: Заказ принят в обработку!");
+    }
+
+    @Step("Проверка: в списке товаров не менее {expectedCount} элементов")
+    private void checkGoodsListSize(List<Good> goodsList, int expectedCount) {
+        assertThat(goodsList).hasSizeGreaterThanOrEqualTo(expectedCount);
+    }
+
+    @Step("Проверка: сумма корзины {totalPrice} не превышает {maxPrice}")
+    private void checkTotalPrice(int totalPrice, int maxPrice) {
+        assertThat(totalPrice).as("Сумма в корзине не должна превышать " + maxPrice)
+                .isLessThanOrEqualTo(maxPrice);
     }
 }
